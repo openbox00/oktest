@@ -37,7 +37,7 @@ void SECTION(SEC_INIT) init_spaceids(word_t max_spaceids,
     ASSERT(ALWAYS, new_table);
 
     space_lookup.init(new_table, max_spaceids);
-    get_kernel_space()->set_space_id(spaceid(~0UL));
+    //get_kernel_space()->set_space_id(spaceid(~0UL));
 }
 
 /**
@@ -67,7 +67,7 @@ generic_space_t::handle_pagefault(addr_t addr, addr_t ip, access_e access,
         // if we have a user fault we may have a stale partner
         current->set_partner(NULL);
 
-        current->send_pagefault_ipc (addr, ip, access, continuation);
+        //current->send_pagefault_ipc (addr, ip, access, continuation);
     }
     else {
         /* kernel fault */
@@ -309,7 +309,7 @@ space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clis
     space->set_kmem_resource(NULL);
     space->enqueue_spaces();
 
-    space->set_space_id(space_id);
+    //space->set_space_id(space_id);
     get_space_list()->add_space(space_id, space);
 
     space->init_security(clist);
@@ -496,12 +496,3 @@ space_t * generic_space_t::lookup_space(spaceid_t space_id)
     }
 }
 
-mutex_t * generic_space_t::lookup_mutex(mutexid_t mutex_id)
-{
-    // Check privilege
-    if (EXPECT_FALSE(!mutex_range.is_valid(mutex_id.get_number()))) {
-        return NULL;
-    } else {
-        return mutexid_table.lookup(mutex_id);
-    }
-}

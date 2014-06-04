@@ -55,8 +55,7 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
                 }
                 current->arch.misc.exception.exception_continuation = ASM_CONTINUATION;
                 current->arch.misc.exception.exception_context = context;
-                send_exception_ipc(0x100 + fs, (word_t)fault_addr,
-                        context, ASM_CONTINUATION);
+                send_exception_ipc(0x100 + fs, (word_t)fault_addr, context, ASM_CONTINUATION);
             }
         }
     }

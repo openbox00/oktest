@@ -342,7 +342,7 @@ tcb_t::release_mutexes(void)
         tcb_t * new_holder;
 
         mutex->mutex_lock.lock();
-        new_holder = mutex->release();
+        //new_holder = mutex->release();
         /* If the mutex has a new holder, make them runnable. */
         if (new_holder != NULL) {
             scheduler->activate(new_holder, thread_state_t::running);
@@ -703,6 +703,7 @@ CONTINUATION_FUNCTION(finish_kernel_ipc);
  * @param access The type of access which caused the fault
  * @param continuation The continuation to activate upon completion
  */
+#if 0
 void tcb_t::send_pagefault_ipc (addr_t addr, addr_t ip,
                                 space_t::access_e access, continuation_t continuation)
 {
@@ -734,7 +735,7 @@ void tcb_t::send_pagefault_ipc (addr_t addr, addr_t ip,
 
     do_ipc(get_pager(), get_pager(), finish_kernel_ipc);
 }
-
+#endif
 /**
  * Set new pager for a thread
  * @param tcb TCB of new pager

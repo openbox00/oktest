@@ -45,6 +45,7 @@ send_exception_ipc( word_t exc_num, word_t exc_code,
 
 extern "C" NORETURN void undefined_exception(arm_irq_context_t *context)
 {
+
     word_t instr;
     continuation_t continuation = ASM_CONTINUATION;
 
@@ -59,7 +60,9 @@ extern "C" NORETURN void undefined_exception(arm_irq_context_t *context)
     }
 
     send_exception_ipc(1, instr, context, continuation);
+
 }
+
 
 extern "C" NORETURN void reset_exception(arm_irq_context_t *context)
 {

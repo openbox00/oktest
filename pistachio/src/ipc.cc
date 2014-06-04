@@ -10,58 +10,6 @@
 #include <smp.h>
 #include <arch/syscalls.h>
 
-
-INLINE bool transfer_message(tcb_t * src, tcb_t * dst)
-{
-    msg_tag_t tag = src->get_tag();
-
-    // clear all flags
-    tag.clear_receive_flags();
-
-    // we set the sender space id here
-    dst->set_sender_space(src->get_space_id());
-
-    /*
-     * Any errors here will be reported as a message overflow error.
-     * For the "exception" IPCs this is misleading as more than just overflow
-     * is checked.  A new error type should be defined sometime.
-     */
-    if (EXPECT_FALSE(src->in_exception_ipc())) {
-        if (! src->copy_exception_mrs_from_frame(dst)) {
-            goto error;
-        }
-    } else if (EXPECT_FALSE(dst->in_exception_ipc())) {
-        if (! src->copy_exception_mrs_to_frame(dst)) {
-            goto error;
-        }
-    } else if (EXPECT_TRUE(tag.get_untyped())){
-        if (EXPECT_FALSE(!src->copy_mrs(dst, 1, tag.get_untyped()))) {
-            goto error;
-        }
-    }
-
-    dst->set_tag(tag);
-    return true;
-
-error:
-    // Report message overflow error
-    dst->set_error_code (IPC_RCV_ERROR (ERR_IPC_MSG_OVERFLOW));
-    src->set_error_code (IPC_SND_ERROR (ERR_IPC_MSG_OVERFLOW));
-
-    tag.set_error();
-    dst->set_tag(tag);
-    return false;
-}
-
-INLINE void setup_notify_return(tcb_t *tcb)
-{
-    word_t mask = tcb->get_notify_mask();
-    word_t bits = tcb->sub_notify_bits(mask);
-
-    tcb->set_tag(msg_tag_t::notify_tag());
-    tcb->set_mr(1, bits & mask);
-}
-
 /*
  * Enqueue 'to_tcb' (if it exists) and return from the IPC.
  */
@@ -111,7 +59,6 @@ extern "C" CONTINUATION_FUNCTION(check_async_ipc)
     if (EXPECT_TRUE(current->sent_from.is_nilthread() &&
                     (!current->get_tag().is_error())))
     {
-        setup_notify_return(current);
         ACTIVATE_CONTINUATION(TCB_SYSDATA_IPC(current)->ipc_return_continuation);
     }
 
@@ -169,3 +116,4 @@ void ipc(tcb_t *to_tcb, tcb_t *from_tcb, word_t wait_type)
     scheduler->context_switch(current, from_tcb, thread_state_t::waiting_forever,thread_state_t::running,
                         TCB_SYSDATA_IPC(current)->ipc_return_continuation);
 }
+ 
