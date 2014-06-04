@@ -1,0 +1,24 @@
+#include <soc/interface.h>
+
+
+        .section .init.start
+        EXPORT __phys_addr_ram
+
+/**
+ * Entry point from the platform ASM into C kernel
+ * Precondition: MMU and page tables are disabled
+ * Warning: Do not use local variables in arch_init()
+ */
+
+        BEGIN_PROC(kernel_arch_init)
+        adr     r0,     __phys_addr_ram
+        bl      init_memory
+
+        /* NOT REACHED */
+LABEL(L1)
+        b       L1
+
+/* These need to be filled in by the build system */
+LABEL(__phys_addr_ram)
+        DCDU    0x0
+        END

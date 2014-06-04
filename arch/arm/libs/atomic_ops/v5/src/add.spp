@@ -1,0 +1,22 @@
+/*
+ * ARM Atomic Operations
+ */
+
+#include <compat/asm.h>
+
+#if defined(NANOKERNEL)
+#include "kernel.h"
+
+/*
+ * void atomic_add(atomic_word_t *target, word_t val)
+ */
+.global okl4_atomic_add
+.global okl4_atomic_add_return
+okl4_atomic_add:
+okl4_atomic_add_return:
+    ldr     r2, =OKN_ATOMIC_ADD_FN
+    bx      r2
+
+#endif
+
+    END
