@@ -73,11 +73,11 @@
 #include <assert.h>
 
 #include "threadsafety.h"
-
+#if 0
 #ifdef THREAD_SAFE
 OKL4_MUTEX_TYPE malloc_mutex;
 #endif
-
+#endif
 Header __malloc_base;             /* empty list to get started */
 
 
@@ -106,7 +106,7 @@ malloc(size_t nbytes)
 
     nunits = ((nbytes + sizeof(Header) - 1) / sizeof(Header)) + 1;
 
-    MALLOC_LOCK;
+    //MALLOC_LOCK;
     if ((prevp = freep) == NULL) {      /* no free list yet */
         base.s.ptr = freep = prevp = &base;
         base.s.size = 0;
@@ -142,12 +142,12 @@ malloc(size_t nbytes)
                 assert(__malloc_check() == 0);
             }
 #endif
-            MALLOC_UNLOCK;
+            //MALLOC_UNLOCK;
             return (void *)(p + 1);
         }
         if (p == freep) {       /* wrapped around free list */
             if ((p = (Header *)morecore(nunits)) == NULL) {
-                MALLOC_UNLOCK;
+                //MALLOC_UNLOCK;
                 errno = ENOMEM;
                 return NULL;    /* none left */
             } else {
@@ -155,7 +155,7 @@ malloc(size_t nbytes)
             }
         }
     }
-    MALLOC_UNLOCK;
+    //MALLOC_UNLOCK;
 }
 
 #ifdef CONFIG_MALLOC_DEBUG_INTERNAL

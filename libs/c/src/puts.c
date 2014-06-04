@@ -75,10 +75,10 @@ puts(const char *s)
     pthread_testcancel();
 #endif
 
-    lock_stream(stdout);
+    //lock_stream(stdout);
     while (*s != '\0')
         (void)fputc(*s++, stdout);
     (void)fputc('\n', stdout);
-    unlock_stream(stdout);
+    //unlock_stream(stdout);
     return 0;
 }

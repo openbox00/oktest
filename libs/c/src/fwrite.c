@@ -83,7 +83,7 @@ fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
     size_t elems, sz;
     const unsigned char *p = ptr;
 
-    lock_stream(stream);
+    //lock_stream(stream);
     for (elems = 0; elems < nmemb; elems++) {
         for (sz = 0; sz < size; sz++, p++) {
             if (fputc(*p, stream) == EOF) {
@@ -92,6 +92,6 @@ fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
         }
     }
 out:
-    unlock_stream(stream);
+    //unlock_stream(stream);
     return elems;
 }

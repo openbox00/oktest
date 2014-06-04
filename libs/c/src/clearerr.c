@@ -67,8 +67,10 @@
 void
 clearerr(FILE *stream)
 {
+#if 0
     lock_stream(stream);
     stream->error = 0;
     stream->eof = 0;
     unlock_stream(stream);
+#endif
 }

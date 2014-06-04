@@ -77,7 +77,7 @@ setvbuf(FILE * stream, char * buf, int mode, size_t size)
         return 1;
     }
 
-    lock_stream(stream);
+    //lock_stream(stream);
 
     /* Set mode */
     stream->buffering_mode = mode;
@@ -93,7 +93,7 @@ setvbuf(FILE * stream, char * buf, int mode, size_t size)
     stream->buffer_end = buf;
     stream->buffer_size = size;
 
-    unlock_stream(stream);
+    //unlock_stream(stream);
 
     return 0;
 }

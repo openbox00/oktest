@@ -331,7 +331,7 @@ __scanf(const char *input, FILE *stream, bool stream_or_memory,
     __va_copy(ap_copy, ap);
 
     if (stream != NULL)
-        lock_stream(stream);
+        //lock_stream(stream);
 
     for (p = (char*)fmt; *p != '\0'; p++) {
         use_width = false;
@@ -827,7 +827,7 @@ number:
 
 matching_failure:
     if (stream != NULL) {
-        unlock_stream(stream);
+        //unlock_stream(stream);
     }
 
     return assign_count;
@@ -835,7 +835,7 @@ matching_failure:
 
 input_failure:
     if (stream != NULL) {
-        unlock_stream(stream);
+       // unlock_stream(stream);
     }
     return EOF;
 

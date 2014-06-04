@@ -80,7 +80,7 @@ fseek(FILE *stream, long int offset, int whence)
 
     int res = 0;
 
-    lock_stream(stream);
+    //lock_stream(stream);
     switch (whence) {
     case SEEK_SET:
         stream->current_pos = offset;
@@ -103,6 +103,6 @@ fseek(FILE *stream, long int offset, int whence)
     default:
         res = -1;
     }
-    unlock_stream(stream);
+    //unlock_stream(stream);
     return res;
 }

@@ -70,9 +70,9 @@ ftell(FILE *stream)
 {
     int res;
 
-    lock_stream(stream);
+    //lock_stream(stream);
     res = stream->current_pos;
-    unlock_stream(stream);
+    //unlock_stream(stream);
     return res;
 }
 
