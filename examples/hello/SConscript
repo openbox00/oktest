@@ -12,7 +12,7 @@ except:
 
 # Add kernel-specific libraries
 if env.kernel == "micro":
-    libs += ["l4", "mutex"]
+    libs += ["l4"]
 elif env.kernel == "nano":
     libs += ["nano"]
 else:

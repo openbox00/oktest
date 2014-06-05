@@ -15,31 +15,14 @@
 void
 prio_queue_t::init(void)
 {
-#if defined(CONFIG_DEBUG)
-    word_t i;
-    /* prio queues - 0 to MAX_PRIO inclusive! */
-    for (i = 0; i < (MAX_PRIO + 1); i++) {
-        ASSERT(ALWAYS, prio_queue[i] == NULL);
-    }
-    ASSERT(ALWAYS, index_bitmap == 0);
-    for (i = 0; i < BITMAP_WORDS; i++) {
-        ASSERT(ALWAYS, prio_bitmap[i] == 0);
-    }
-#endif
 }
 
 void
 prio_queue_t::enqueue(tcb_t * tcb)
 {
-    SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
-    SMT_ASSERT(ALWAYS, !tcb->is_grabbed_by_me());
-    ASSERT(ALWAYS, tcb != get_idle_tcb());
-    ASSERT(ALWAYS, !tcb->ready_list.is_queued());
-
     prio_t prio = tcb->effective_prio;
 
     /* Enqueue the TCB. */
-    ASSERT(DEBUG, prio >= 0 && prio <= MAX_PRIO);
     ENQUEUE_LIST_TAIL(tcb_t, prio_queue[prio], tcb, ready_list);
 
     /* Finally, update the bitmap tree. */
@@ -51,14 +34,8 @@ prio_queue_t::enqueue(tcb_t * tcb)
 void
 prio_queue_t::dequeue(tcb_t * tcb)
 {
-    SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
-    ASSERT(DEBUG, tcb);
-    ASSERT(ALWAYS, tcb != get_idle_tcb());
-    ASSERT(ALWAYS, tcb->ready_list.is_queued());
-
     prio_t priority = tcb->effective_prio;
 
-    ASSERT(DEBUG, priority >= 0 && priority <= MAX_PRIO);
     DEQUEUE_LIST(tcb_t, prio_queue[priority], tcb, ready_list);
     if (prio_queue[priority] == 0) {
         remove_sched_bitmap_bit(priority);
@@ -68,8 +45,6 @@ prio_queue_t::dequeue(tcb_t * tcb)
 void
 prio_queue_t::set_base_priority(tcb_t *tcb, prio_t new_priority)
 {
-    SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
-
     /* Recalculate effective priorities. */
     prio_t old_effective_prio = tcb->effective_prio;
     tcb->base_prio = new_priority;
@@ -89,9 +64,6 @@ prio_queue_t::set_base_priority(tcb_t *tcb, prio_t new_priority)
 void
 prio_queue_t::set_effective_priority(tcb_t * tcb, prio_t new_priority)
 {
-    ASSERT(DEBUG, new_priority >= 0 && new_priority <= MAX_PRIO);
-    SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
-
     /* Thread is not on the priority queue. Just update its priority,
      * with no more to be done. */
     if (!tcb->ready_list.is_queued()) {

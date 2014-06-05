@@ -1,0 +1,64 @@
+./tools/build.py MACHINE=versatile PYFREEZE=False  PROJECT=examples EXAMPLE=hello
+scons: Reading SConscript files ...
+Unable to find package: libs/l4
+Unable to find package: libs/l4
+Unable to find package: libs/mutex
+scons: done reading SConscript files.
+scons: Building targets ...
+[INST] build/pistachio/include/kernel/macros.h
+Copy("build/pistachio/object/pistachio/include/arch/pgent.h", "arch/arm/pistachio/include/pgent.h")
+Copy("build/pistachio/object/pistachio/include/arch/space.h", "arch/arm/pistachio/include/space.h")
+Copy("build/pistachio/object/pistachio/include/arch/ktcb.h", "arch/arm/pistachio/include/ktcb.h")
+Copy("build/pistachio/object/pistachio/include/arch/tcb.h", "arch/arm/pistachio/include/tcb.h")
+[INST] build/pistachio/include/atomic_ops/atomic_ops.h
+Copy("build/pistachio/object/pistachio/include/arch/config.h", "arch/arm/pistachio/include/config.h")
+[INST] build/pistachio/include/kernel/config.h
+[INST] build/pistachio/include/kernel/types.h
+Copy("build/pistachio/object/pistachio/include/arch/globals.h", "arch/arm/pistachio/include/globals.h")
+[INST] build/pistachio/include/kernel/debug.h
+Copy("build/pistachio/object/pistachio/include/arch/phys_segment.h", "arch/arm/pistachio/include/phys_segment.h")
+Copy("build/pistachio/object/pistachio/include/arch/resources.h", "arch/arm/pistachio/include/resources.h")
+[INST] build/pistachio/include/kernel/bitmap.h
+[INST] build/pistachio/include/kernel/generic/lib.h
+Copy("build/pistachio/object/pistachio/include/arch/cache.h", "arch/arm/pistachio/include/cache.h")
+[INST] build/pistachio/include/kernel/cache.h
+[INST] build/pistachio/include/compat/c.h
+Copy("build/pistachio/object/pistachio/include/arch/hwspace.h", "arch/arm/pistachio/include/hwspace.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/pgent.h", "arch/arm/pistachio/v5/include/pgent.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/space.h", "arch/arm/pistachio/v5/include/space.h")
+Copy("build/pistachio/object/pistachio/include/arch/exception.h", "arch/arm/pistachio/include/exception.h")
+Copy("build/pistachio/object/pistachio/include/arch/thread.h", "arch/arm/pistachio/include/thread.h")
+Copy("build/pistachio/object/pistachio/include/arch/asm_prototypes.h", "arch/arm/pistachio/include/asm_prototypes.h")
+Copy("build/pistachio/object/pistachio/include/arch/resource_functions.h", "arch/arm/pistachio/include/resource_functions.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/tcb.h", "arch/arm/pistachio/v5/include/tcb.h")
+Copy("build/pistachio/object/pistachio/include/cpu/cache.h", "arch/arm/pistachio/cpu/arm926ejs/include/cache.h")
+Copy("build/pistachio/object/pistachio/include/cpu/syscon.h", "arch/arm/pistachio/cpu/arm926ejs/include/syscon.h")
+[INST] build/pistachio/include/kernel/arch/asm.h
+[INST] build/pistachio/include/kernel/arch/continuation.h
+[INST] build/pistachio/include/atomic_ops/arch/atomic_ops.h
+Copy("build/pistachio/object/pistachio/include/arch/page.h", "arch/arm/pistachio/include/page.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/config.h", "arch/arm/pistachio/v5/include/config.h")
+[INST] build/pistachio/include/kernel/arch/config.h
+[INST] build/pistachio/include/kernel/arch/types.h
+Copy("build/pistachio/object/pistachio/include/arch/ver/phys_segment.h", "arch/arm/pistachio/v5/include/phys_segment.h")
+Copy("build/pistachio/object/pistachio/include/arch/syscalls.h", "arch/arm/pistachio/include/syscalls.h")
+[INST] build/pistachio/include/kernel/errors.h
+[INST] build/pistachio/include/soc/soc.h
+[INST] build/pistachio/include/kernel/arch/special.h
+[INST] build/pistachio/include/soc/arch/soc.h
+[INST] build/pistachio/include/compat/toolchain/ads_c.h
+[INST] build/pistachio/include/compat/toolchain/flint_c.h
+[INST] build/pistachio/include/compat/toolchain/gnu_c.h
+[INST] build/pistachio/include/compat/toolchain/rvct_c.h
+[INST] build/pistachio/include/compat/toolchain/rvct_gnu_c.h
+Copy("build/pistachio/object/pistachio/include/arch/fass.h", "arch/arm/pistachio/include/fass.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/ptab.h", "arch/arm/pistachio/v5/include/ptab.h")
+Copy("build/pistachio/object/pistachio/include/arch/fass_inline.h", "arch/arm/pistachio/include/fass_inline.h")
+[INST] build/pistachio/include/kernel/arch/asm_gnu.h
+[INST] build/pistachio/include/kernel/arch/asm_rvct.h
+[INST] build/pistachio/include/atomic_ops/unsafe_generic.h
+Copy("build/pistachio/object/pistachio/include/cpu/phys_segment.h", "arch/arm/pistachio/cpu/arm926ejs/include/phys_segment.h")
+Copy("build/pistachio/object/pistachio/include/arch/ver/utcb.h", "arch/arm/pistachio/v5/include/utcb.h")
+[INST] build/pistachio/include/kernel/kdb/console.h
+[INST] build/pistachio/include/soc/soc_types.h
+[CXX ] build/pistachio/l4kernel/object/src/asid.o
