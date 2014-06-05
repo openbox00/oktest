@@ -63,11 +63,11 @@
 void
 endpoint_t::init(tcb_t * tcb)
 {
-    this->send_queue.init(tcb);
+    //his->send_queue.init(tcb);
 
 #if defined(CONFIG_SCHEDULE_INHERITANCE)
 
-    this->recv_queue.init(tcb);
+    //this->recv_queue.init(tcb);
 
 #endif
 }
@@ -78,7 +78,7 @@ endpoint_t::enqueue_send(tcb_t * tcb)
     scheduler_t * scheduler = get_current_scheduler();
 
     scheduler->scheduler_lock();
-    this->send_queue.block(tcb);
+    //this->send_queue.block(tcb);
     scheduler->scheduler_unlock();
 }
 
@@ -88,7 +88,7 @@ endpoint_t::dequeue_send(tcb_t * tcb)
     scheduler_t * scheduler = get_current_scheduler();
 
     scheduler->scheduler_lock();
-    this->send_queue.unblock(tcb);
+    //this->send_queue.unblock(tcb);
     scheduler->scheduler_unlock();
 }
 
@@ -100,7 +100,7 @@ endpoint_t::enqueue_recv(tcb_t * tcb)
     scheduler_t * scheduler = get_current_scheduler();
 
     scheduler->scheduler_lock();
-    this->recv_queue.block(tcb);
+    //this->recv_queue.block(tcb);
     scheduler->scheduler_unlock();
 
 #endif
@@ -114,7 +114,7 @@ endpoint_t::dequeue_recv(tcb_t * tcb)
     scheduler_t * scheduler = get_current_scheduler();
 
     scheduler->scheduler_lock();
-    this->recv_queue.unblock(tcb);
+    //this->recv_queue.unblock(tcb);
     scheduler->scheduler_unlock();
 
 #endif
