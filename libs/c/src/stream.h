@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <sys/types.h>
-#include <assert.h>
 #include <sys/types.h>
 
 #include "threadsafety.h"

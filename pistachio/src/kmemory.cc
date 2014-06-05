@@ -8,12 +8,9 @@
 #include <sync.h>
 #include <kmem_resource.h>
 #include <arch/globals.h>
-#define KMEM_CHECK
 
 void kmem_t::init(void * start, void * end)
 {
-#define ISIZE ((word_t) end - (word_t) start)
-
     /* initialize members */
     kmem_free_list = NULL;
     free_chunks = 0;
@@ -27,13 +24,7 @@ void kmem_t::free(void * address, word_t size)
 {
     word_t* p;
     word_t* prev, *curr;
-
-
-    KMEM_CHECK;
-
     size = max(size, (word_t)KMEM_CHUNKSIZE);
-    ASSERT(NORMAL, (size % KMEM_CHUNKSIZE) == 0);
-
 
     for (p = (word_t*)address;
          p < ((word_t*)(((word_t)address) + size - KMEM_CHUNKSIZE));
@@ -49,20 +40,17 @@ void kmem_t::free(void * address, word_t size)
 
     /* update counter */
     free_chunks += (size/KMEM_CHUNKSIZE);
-    KMEM_CHECK;
 }
 
 
 /* the stupid version */
 void * kmem_t::alloc(word_t size, bool zeroed)
 {
+
     word_t*     prev;
     word_t*     curr;
     word_t*     tmp;
     word_t      i;
-
-
-    KMEM_CHECK;
 
     /* round up to the next CHUNKSIZE */
     size = ((size - 1) & ~(KMEM_CHUNKSIZE-1)) + KMEM_CHUNKSIZE;
@@ -94,22 +82,15 @@ void * kmem_t::alloc(word_t size, bool zeroed)
                 *prev = (word_t) tmp;
                 if (zeroed)
                 {
-#if defined(HAVE_FASTER_MEMZERO)
-                    mem_zero(curr, size);
-#else
                     /* zero the page */
                     word_t *p = curr;
                     do {
                         *p++ = 0; *p++ = 0; *p++ = 0; *p++ = 0;
                     } while ((word_t)p < (word_t)curr + size);
-#endif
                 }
 
                 /* update counter */
                 free_chunks -= num_chunks;
-
-                /* successful return */
-                KMEM_CHECK;
 
                 return curr;
             }
