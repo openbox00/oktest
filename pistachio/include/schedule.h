@@ -709,9 +709,11 @@ scheduler_t::set_priority(tcb_t * tcb, prio_t prio)
     prio_queue.set_base_priority(tcb, prio);
 
     /* Propagate the priority changes. */
+#if 0
     if (tcb->get_waiting_for() != NULL) {
         tcb->get_waiting_for()->refresh(tcb);
     }
+#endif
     schedule_lock.unlock();
 }
 

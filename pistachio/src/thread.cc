@@ -164,7 +164,7 @@ void tcb_t::init(void)
     post_syscall_callback = NULL;
 
     /* Initialise IPC end-point. */
-    this->end_point.init(this);
+    //this->end_point.init(this);
 
     /* Lock initialization */
     this->thread_lock.init();
@@ -500,7 +500,7 @@ calculate_errorcodes( tcb_t * snd, tcb_t * rcv,
 void
 tcb_t::unwind(tcb_t *partner)
 {
-    tcb_t *ipc_partner = partner;
+    //tcb_t *ipc_partner = partner;
 
     thread_state_t orig_cstate = get_state();
     thread_state_t orig_sstate = get_saved_state();
@@ -532,14 +532,7 @@ tcb_t::unwind(tcb_t *partner)
         cstate.is_waiting_notify())
     {
         msg_tag_t tag = get_tag();
-
-        // IPC operation has not yet started.  I.e., ipc_partner is not
-        // yet involved.
-
         if (cstate.is_polling()) {
-            // The thread is enqueued in the send queue of the ipc_partner.
-            ASSERT(ALWAYS, ipc_partner != NULL);
-            ipc_partner->end_point.dequeue_send(this);
         }
         else
         {
@@ -560,51 +553,23 @@ tcb_t::unwind(tcb_t *partner)
     }
 
     if (cstate.is_waiting_mutex()) {
-        mutex_t * mutex = TCB_SYSDATA_MUTEX(this)->mutex;
+        //mutex_t * mutex = TCB_SYSDATA_MUTEX(this)->mutex;
 
         get_current_scheduler()->scheduler_lock();
-        mutex->sync_point.unblock(this);
+        //mutex->sync_point.unblock(this);
         get_current_scheduler()->scheduler_unlock();
         TCB_SYSDATA_MUTEX(this)->mutex = NULL;
         get_current_scheduler()->update_inactive_state(this,
                 thread_state_t::aborted);
         return;
     }
-
-#ifdef CONFIG_DEBUG
-    panic("Unresolved unwind: tcb=%t p=%t s=%s (saved: p=%t s=%s)\n",
-          this,
-          orig_cpartner, orig_cstate.string(),
-          orig_spartner, orig_sstate.string());
-#else
-    panic("Unresolved unwind: tcb=%t p=%t (saved: p=%t)\n",
-          this,
-          orig_cpartner,
-          orig_spartner);
-#endif
 }
 
-/**
- * Handler invoked when IPC errors occur.  Any IPC resources are
- * released and control is transferred to user-level.  If the aborted
- * IPC happens to be a pagefault IPC (caused by user-level memory
- * access) we need to restore the thread prior to the pagefault
- * and return to user-level.
- *
- * This function returns by shortcutting the normal
- * continuations and proceeding directly to the ASM return to user routines
- */
 CONTINUATION_FUNCTION(handle_ipc_error)
 {
     tcb_t * current = get_current_tcb();
     thread_state_t saved_state = current->get_saved_state();
 
-    //TRACEF("saved state == %x\n", (word_t)current->get_saved_state ());
-
-    // We're going to skip the last part of the switch_to() function
-    // invoked when switching from the current thread.  Make sure that
-    // we still manage to load up the appropriate resources when
-    // switching to the thread.
 
     if (EXPECT_FALSE (current->resource_bits))
         current->resources.load (current);
@@ -880,6 +845,7 @@ tcb_t::calc_effective_priority()
 void
 tcb_t::remove_dependency(void)
 {
+#if 0
     syncpoint_t *syncpoint;
 
     get_current_scheduler()->schedule_lock.lock();
@@ -888,6 +854,7 @@ tcb_t::remove_dependency(void)
         syncpoint->unblock(this);
     }
     get_current_scheduler()->schedule_lock.unlock();
+#endif
 }
 
 /**********************************************************************

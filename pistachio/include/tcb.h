@@ -110,7 +110,7 @@ public:
      *
      * @return The syncpoint that this thread is currently blocked on.
      */
-    INLINE syncpoint_t * get_waiting_for(void);
+    //INLINE syncpoint_t * get_waiting_for(void);
 
     /**
      * @brief If this thread is currently blocked on a syncpoint, unblock it.
@@ -706,13 +706,13 @@ tcb_t::set_waiting_for(syncpoint_t * syncpoint)
 {
     this->waiting_for = syncpoint;
 }
-
+#if 0
 INLINE syncpoint_t *
 tcb_t::get_waiting_for(void)
 {
-    return this->waiting_for;
+    //return this->waiting_for;
 }
-
+#endif
 /**
  * Get TCB of a thread's pager
  * @return      TCB of pager
