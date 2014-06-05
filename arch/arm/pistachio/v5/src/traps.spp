@@ -27,9 +27,9 @@
 #endif
         IMPORT  reset_exception
         IMPORT  send_exception_ipc
-        IMPORT  sys_cache_control
+        //IMPORT  sys_cache_control
         IMPORT  sys_exchange_registers
-        //IMPORT  sys_ipc
+        IMPORT  sys_ipc
         //IMPORT  sys_map_control
         IMPORT  sys_schedule
         IMPORT  sys_space_control
@@ -1292,7 +1292,7 @@ LABEL(arm_std_syscall)
         nop
 
 LABEL(arm_syscall_vectors)
-        //DCDU    sys_ipc
+        DCDU    sys_ipc
         DCDU    sys_thread_switch
         DCDU    vector_sys_thread_control_exargs
         DCDU    vector_sys_exchange_registers_exargs
@@ -1300,7 +1300,7 @@ LABEL(arm_syscall_vectors)
         //DCDU    sys_map_control
         DCDU    vector_sys_space_control_exargs
         DCDU    syscall_return /* Unused system call. */
-        DCDU    sys_cache_control
+        //DCDU    sys_cache_control
         DCDU    syscall_return /* Unused system call. */
         //DCDU    sys_ipc            /* lipc */
         DCDU    sys_platform_control

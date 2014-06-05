@@ -1,3 +1,4 @@
+
 /*
  * Description:   generic IPC path
  */
@@ -10,7 +11,6 @@
 SYS_IPC(capid_t to_tid, capid_t from_tid)
 {
 }
-
 void ipc(tcb_t *to_tcb, tcb_t *from_tcb, word_t wait_type)
 {
 
@@ -18,5 +18,5 @@ void ipc(tcb_t *to_tcb, tcb_t *from_tcb, word_t wait_type)
     scheduler_t * scheduler = get_current_scheduler();
     scheduler->context_switch(current, from_tcb, thread_state_t::waiting_forever,thread_state_t::running,
                         TCB_SYSDATA_IPC(current)->ipc_return_continuation);
+
 }
- 
