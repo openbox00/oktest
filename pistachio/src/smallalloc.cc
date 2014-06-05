@@ -1,67 +1,6 @@
 /*
- * Copyright (c) 2006, National ICT Australia
- */
-/*
- * Copyright (c) 2007 Open Kernel Labs, Inc. (Copyright Holder).
- * All rights reserved.
- *
- * 1. Redistribution and use of OKL4 (Software) in source and binary
- * forms, with or without modification, are permitted provided that the
- * following conditions are met:
- *
- *     (a) Redistributions of source code must retain this clause 1
- *         (including paragraphs (a), (b) and (c)), clause 2 and clause 3
- *         (Licence Terms) and the above copyright notice.
- *
- *     (b) Redistributions in binary form must reproduce the above
- *         copyright notice and the Licence Terms in the documentation and/or
- *         other materials provided with the distribution.
- *
- *     (c) Redistributions in any form must be accompanied by information on
- *         how to obtain complete source code for:
- *        (i) the Software; and
- *        (ii) all accompanying software that uses (or is intended to
- *        use) the Software whether directly or indirectly.  Such source
- *        code must:
- *        (iii) either be included in the distribution or be available
- *        for no more than the cost of distribution plus a nominal fee;
- *        and
- *        (iv) be licensed by each relevant holder of copyright under
- *        either the Licence Terms (with an appropriate copyright notice)
- *        or the terms of a licence which is approved by the Open Source
- *        Initative.  For an executable file, "complete source code"
- *        means the source code for all modules it contains and includes
- *        associated build and other files reasonably required to produce
- *        the executable.
- *
- * 2. THIS SOFTWARE IS PROVIDED ``AS IS'' AND, TO THE EXTENT PERMITTED BY
- * LAW, ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED.  WHERE ANY WARRANTY IS
- * IMPLIED AND IS PREVENTED BY LAW FROM BEING DISCLAIMED THEN TO THE
- * EXTENT PERMISSIBLE BY LAW: (A) THE WARRANTY IS READ DOWN IN FAVOUR OF
- * THE COPYRIGHT HOLDER (AND, IN THE CASE OF A PARTICIPANT, THAT
- * PARTICIPANT) AND (B) ANY LIMITATIONS PERMITTED BY LAW (INCLUDING AS TO
- * THE EXTENT OF THE WARRANTY AND THE REMEDIES AVAILABLE IN THE EVENT OF
- * BREACH) ARE DEEMED PART OF THIS LICENCE IN A FORM MOST FAVOURABLE TO
- * THE COPYRIGHT HOLDER (AND, IN THE CASE OF A PARTICIPANT, THAT
- * PARTICIPANT). IN THE LICENCE TERMS, "PARTICIPANT" INCLUDES EVERY
- * PERSON WHO HAS CONTRIBUTED TO THE SOFTWARE OR WHO HAS BEEN INVOLVED IN
- * THE DISTRIBUTION OR DISSEMINATION OF THE SOFTWARE.
- *
- * 3. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY OTHER PARTICIPANT BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/*
  * Description:   Kernel Small Object Allocator
  */
-
 #include <l4.h>
 #include <debug.h>
 #include <kmemory.h>
@@ -115,7 +54,6 @@ small_alloc_t::allocate_block(kmem_group_t * const group)
 
     /* current is the last in the block list */
     block->id = next_id;
-    ASSERT(DEBUG, !max_objs || block->id < max_objs);
     current->next = block;
     block->next = 0;
 
@@ -128,29 +66,11 @@ small_alloc_t::allocate_block(kmem_group_t * const group)
 
 void small_alloc_t::free_block(kmem_group_t * const group, small_alloc_block_t *block)
 {
-    TRACESA("Freeing object block %p\n", block);
-
-    /* Deleting head of the block list? */
-    if (head == block) {
-        head = block->next;
-    } else {
-        small_alloc_block_t * current = head;
-        small_alloc_block_t * next = current->next;
-
-        while (next && next != block) {
-            current = next;
-            next = current->next;
-        }
-
-        current->next = block->next;
-    }
-    get_current_kmem_resource()->heap.free(group, get_block_base(block), SMALL_OBJECT_BLOCKSIZE);
 }
 
 void * small_alloc_t::allocate(bool zeroed)
 {
     if (max_objs && (num >= max_objs)) {
-        TRACESA("Already have max number of objects (%d)\n", max);
         return NULL;
     }
 
@@ -160,18 +80,9 @@ void * small_alloc_t::allocate(bool zeroed)
         if (!first_free){
             return NULL;
         }
-#if defined(CONFIG_KMEM_DEBUG)
-        poison_area(get_object(first_free, 0),
-                    objs_per_block * obj_size,
-                    KMEM_POISON_FREE);
-#endif
     }
 
     int position = bitmap_findfirstset(first_free->get_bitmap(), objs_per_block);
-    ASSERT(DEBUG, position != -1);
-
-    TRACESA("Allocating object %d\n", position + first_free->id);
-
     void * object = get_object(first_free, position);
 
     bitmap_clear(first_free->get_bitmap(), position);
@@ -185,70 +96,15 @@ void * small_alloc_t::allocate(bool zeroed)
     }
 
     num++;
-
-#if defined(CONFIG_KMEM_DEBUG)
-    check_poisoned_area(object, obj_size,
-                        KMEM_POISON_FREE, object);
-    if (!zeroed) {
-        poison_area(object, obj_size, KMEM_POISON_ALLOC);
-    }
-#endif
     if (zeroed) {
         memset(object, 0, obj_size);
     }
 
     return object;
+
 }
-
-#if defined(CONFIG_KMEM_DEBUG)
-void small_alloc_t::check_free(void * object)
-{
-    small_alloc_block_t *block;
-
-    block = get_block(get_block_base(object));
-    if (bitmap_isset(block->get_bitmap(), id(object) - block->id)) {
-        TRACEF("addr(%p) was already freed\n", object);
-        enter_kdebug("double free");
-    }
-}
-#endif
-
 void small_alloc_t::free(void * object)
 {
-    ASSERT(DEBUG, object);
-    small_alloc_block_t *block;
-
-    TRACESA("Freeing %d\n", id(object));
-
-#if defined(CONFIG_KMEM_DEBUG)
-    check_free(object);
-    poison_area(object, obj_size, KMEM_POISON_FREE);
-#endif
-    block = get_block(get_block_base(object));
-
-    /* mark this space as free */
-    bitmap_set(block->get_bitmap(), id(object) - block->id);
-
-    /* if none free, mark this block as first_free */
-    if (!first_free || (block->id < first_free->id)) {
-        first_free = block;
-        num --;
-        return;
-    }
-
-    /* Try to free this block if now unused */
-    if (bitmap_isallset(block->get_bitmap(), objs_per_block))
-    {
-        free_block(mem_group, block);
-
-        if (first_free == block)
-        {
-            first_free = head;
-            while (first_free && bitmap_findfirstset(first_free->get_bitmap(), objs_per_block) == -1)
-                first_free = first_free->next;
-        }
-    }
-    num--;
 }
 
 void small_alloc_t::init(kmem_group_t * const group, u32_t object_size, u32_t max_objects)
@@ -266,10 +122,6 @@ void small_alloc_t::init(kmem_group_t * const group, u32_t object_size, u32_t ma
     if (extra_space >= header_size) {
         objs_per_block = SMALL_OBJECT_BLOCKSIZE / obj_size;
     } else {
-        /*
-         * The remainder is not enough for header, we need to sacrifice a few
-         * objects for header.
-         */
         objs_per_block = (SMALL_OBJECT_BLOCKSIZE / obj_size) -
             (header_size - extra_space) / obj_size - 1;
     }

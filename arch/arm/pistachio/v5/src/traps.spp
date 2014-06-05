@@ -36,7 +36,7 @@
         IMPORT  sys_thread_control
         IMPORT  sys_thread_switch
         IMPORT  sys_platform_control
-        IMPORT  sys_space_switch
+        //IMPORT  sys_space_switch
         IMPORT  sys_interrupt_control
         //IMPORT  sys_cap_control
         //IMPORT  sys_memory_copy
@@ -1304,7 +1304,7 @@ LABEL(arm_syscall_vectors)
         DCDU    syscall_return /* Unused system call. */
         //DCDU    sys_ipc            /* lipc */
         DCDU    sys_platform_control
-        DCDU    sys_space_switch
+        //DCDU    sys_space_switch
         DCDU    sys_interrupt_control
         //DCDU    sys_cap_control
         //DCDU    sys_memory_copy
