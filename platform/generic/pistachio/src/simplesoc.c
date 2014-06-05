@@ -153,7 +153,8 @@ handle_irq(word_t irq, continuation_t cont)
      * we require a reschedule. */
     *irq_desc = irq;
     mask = irq_mapping[irq].notify_mask;
-    return kernel_deliver_notify(handler, mask, cont);
+    //return kernel_deliver_notify(handler, mask, cont);
+	return 0;
 }
 
 /*
@@ -347,9 +348,6 @@ soc_ack_interrupt(struct irq_desc *desc, tcb_h handler)
     /* Otherwise, handle the interrupt. */
     bitmap_clear(irq_pending, pend);
     utcb->platform_reserved[0] = pend;
-    /* BUG: The kernel may need to perform a full schedule after this,
-     * but we have no way of indicating this back to them. */
-    (void)kernel_deliver_notify(handler, irq_mapping[pend].notify_mask, NULL);
     return 0;
 }
 
