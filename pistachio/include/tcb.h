@@ -17,7 +17,6 @@
 #include <utcb.h>
 #include <mp.h>
 #include <smallalloc.h>
-#include <mutex.h>
 #include <read_write_lock.h>
 
 /* implementation specific functions */
@@ -532,7 +531,6 @@ INLINE tcb_t* acquire_read_lock_current(tcb_t *current, tcb_t *tcb_locked = NULL
     if (current == tcb_locked) {
         current->lock_read_already_held();
     } else if (EXPECT_FALSE(!current->try_lock_read())) {
-        ASSERT(DEBUG, "should not fail on uni-processor");
         return NULL;
     }
     return current;
@@ -691,7 +689,6 @@ INLINE bool tcb_t::is_partner_valid()
 
 INLINE tcb_t * tcb_t::get_partner()
 {
-    ASSERT(DEBUG, this->is_partner_valid());
     return this->partner;
 }
 
@@ -1045,8 +1042,6 @@ tcb_t::set_user_access(continuation_t cont)
      * the present time (for instance, visible kernel preemption), but
      * unfortunately this field is left with stale data in it after a
      * (timer-based) preemption continuation takes place.  */
-    ASSERT(DEBUG, !this->user_access_enabled());
-
     this->runtime_flags |= (word_t)(1 << TCB_RF_USER_ACCESS);
     this->preemption_continuation = cont;
 
@@ -1065,7 +1060,6 @@ tcb_t::clear_user_access(void)
 #if defined(ARCH_DISABLE_USER_ACCESS)
     ARCH_DISABLE_USER_ACCESS;
 #endif
-    ASSERT(DEBUG, (word_t)this->user_access_enabled());
     this->runtime_flags &= ~((word_t)(1 << TCB_RF_USER_ACCESS));
     this->preemption_continuation = NULL;
 
@@ -1081,8 +1075,6 @@ tcb_t::user_access_enabled(void)
 INLINE continuation_t
 tcb_t::user_access_continuation(void)
 {
-    ASSERT(DEBUG, this->user_access_enabled());
-
     return this->preemption_continuation;
 }
 
@@ -1130,10 +1122,8 @@ tcb_t::set_suspended(bool new_state)
 
     /* Ensure that the new state is different from the old state. */
     if (current) {
-        ASSERT(DEBUG, !new_state);
         this->runtime_flags &= ~((word_t)(1 << TCB_RF_SUSPENDED));
     } else {
-        ASSERT(DEBUG, new_state);
         this->runtime_flags |= (word_t)(1 << TCB_RF_SUSPENDED);
     }
 }

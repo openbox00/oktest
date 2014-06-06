@@ -341,14 +341,14 @@ tcb_t::release_mutexes(void)
     while ((mutex = this->mutexes_head) != NULL) {
         tcb_t * new_holder;
 
-        mutex->mutex_lock.lock();
+        //mutex->mutex_lock.lock();
         //new_holder = mutex->release();
         /* If the mutex has a new holder, make them runnable. */
         if (new_holder != NULL) {
             scheduler->activate(new_holder, thread_state_t::running);
             need_reschedule = true;
         }
-        mutex->mutex_lock.unlock();
+        //mutex->mutex_lock.unlock();
     }
     return need_reschedule;
 }
@@ -558,7 +558,7 @@ tcb_t::unwind(tcb_t *partner)
         get_current_scheduler()->scheduler_lock();
         //mutex->sync_point.unblock(this);
         get_current_scheduler()->scheduler_unlock();
-        TCB_SYSDATA_MUTEX(this)->mutex = NULL;
+        //TCB_SYSDATA_MUTEX(this)->mutex = NULL;
         get_current_scheduler()->update_inactive_state(this,
                 thread_state_t::aborted);
         return;
@@ -801,7 +801,7 @@ start_post_syscall_callback(void)
 prio_t
 tcb_t::calc_effective_priority()
 {
-    SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
+    //SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
 
     prio_t max = this->base_prio;
 
@@ -820,23 +820,23 @@ tcb_t::calc_effective_priority()
     if (recv_head != NULL && recv_head->effective_prio > max) {
         max = recv_head->effective_prio;
     }
-
+#if 0
     /* Determine max prioirty on held mutexes. */
     mutex_t * mutex_list = this->mutexes_head;
     mutex_t * first = mutex_list;
 
     if (mutex_list) {
         do {
-            ASSERT(ALWAYS, mutex_list->sync_point.get_donatee() == this);
-            tcb_t * blocked_head = mutex_list->sync_point.get_blocked_head();
+            //ASSERT(ALWAYS, mutex_list->sync_point.get_donatee() == this);
+            //tcb_t * blocked_head = mutex_list->sync_point.get_blocked_head();
 
             if (blocked_head != NULL && blocked_head->effective_prio > max) {
                 max = blocked_head->effective_prio;
             }
-            mutex_list = mutex_list->held_list.next;
+            //mutex_list = mutex_list->held_list.next;
         } while (mutex_list != first);
     }
-
+#endif
     return max;
 }
 #endif

@@ -33,7 +33,7 @@ SECTION(".elfweaver_info") extern const struct elfweaver_info weaver_info = {
     sizeof(cap_t),
     sizeof(space_t),
     sizeof(tcb_t),
-    sizeof(mutex_t),
+    sizeof(int),
     sizeof(segment_list_t),
     SMALL_OBJECT_BLOCKSIZE,
     KMEM_CHUNKSIZE,

@@ -333,13 +333,6 @@ public:
         }
     }
 
-    static inline void cache_flush_debug(void)
-    {
-        printf("About to cache flush... ");
-        cache_flush();
-        printf("done.\n");
-    }
-
     static inline void tlb_flush(void)
     {
         word_t zero = 0;
@@ -375,13 +368,6 @@ public:
 #endif
             a += ARM_PAGE_SIZE;
         }
-    }
-
-    static inline void tlb_flush_debug(void)
-    {
-        printf("About to TLB flush... ");
-        tlb_flush();
-        printf("done.\n");
     }
 
     static inline void cache_enable()

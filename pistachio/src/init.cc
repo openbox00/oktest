@@ -17,7 +17,6 @@
 #include <arch/hwspace.h>
 #include <kernel/generic/lib.h>
 #include <soc/soc.h>
-#include <mutex.h>
 #include <clist.h>
 
 void idle_thread();

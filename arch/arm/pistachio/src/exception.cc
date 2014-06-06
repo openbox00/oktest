@@ -11,7 +11,6 @@
 #include <linear_ptab.h>
 #include <kernel/generic/lib.h>
 #include <schedule.h>
-#include <mutex.h>
 #include <soc/arch/soc.h>
 #include <arch/intctrl.h>
 

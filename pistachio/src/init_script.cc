@@ -9,7 +9,6 @@
 #include <config.h>
 #include <arch/hwspace.h>
 #include <kernel/generic/lib.h>
-#include <mutex.h>
 #include <clist.h>
 #include <caps.h>
 #include <init.h>

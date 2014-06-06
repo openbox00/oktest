@@ -143,10 +143,11 @@ MKASMSYM( OFS_ENDPOINT_SEND_QUEUE,    cpp_offsetof(endpoint_t, send_queue));
 MKASMSYM( OFS_ENDPOINT_RECV_QUEUE,    cpp_offsetof(endpoint_t, recv_queue));
 #endif
 
+#if 0
 /* Mutexes */
 MKASMSYM( OFS_MUTEX_SYNC_POINT,       cpp_offsetof(mutex_t, sync_point));
 MKASMSYM( OFS_MUTEX_HELD_LIST,        cpp_offsetof(mutex_t, held_list));
-
+#endif
 /* Ringlists */
 MKASMSYM( OFS_RINGLIST_NEXT,          cpp_offsetof(ringlist_t<tcb_t>, next));
 MKASMSYM( OFS_RINGLIST_PREV,          cpp_offsetof(ringlist_t<tcb_t>, prev));

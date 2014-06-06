@@ -28,13 +28,6 @@ public:
         execution_units = generic_execution_units;
     }
 
-    void print_info() {
-        TRACE_INIT("domain pairs:");
-        for(int i = 0; i < 1; i++)
-            TRACE_INIT(" (%d, %d)", i, execution_units[i]);
-        TRACE_INIT("\n");
-    }
-
     /* These may be hardcoded for a particular platform or include specific
      * code to find the corerct values */
     inline unsigned int get_num_scheduler_domains()      { return 1; }

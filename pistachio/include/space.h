@@ -11,7 +11,6 @@
 #include <map.h>
 #include <spaceid.h>
 #include <clist.h>
-#include <mutexid.h>
 #include <resource_ids.h>
 #include <arch/pgent.h>
 #include <phys_segment.h>
@@ -111,7 +110,7 @@ public:
 
     clist_t * lookup_clist(clistid_t clist_id); 
     space_t * lookup_space(spaceid_t space_id);
-    mutex_t * lookup_mutex(mutexid_t mutex_id);
+    //mutex_t * lookup_mutex(mutexid_t mutex_id);
 
     /* temporary */
     bool can_access_kresources(void) { return kmem_resource != NULL; }

@@ -992,12 +992,10 @@ LABEL(mutex_loop_start)
         movlt   tmp4,    tmp1                                  /* SI-RECALC */
 
         /* Load the thread waiting on this mutex. */
-        ldr     tmp1,    [tmp2, #(OFS_MUTEX_SYNC_POINT \
-                                + OFS_SYNCPOINT_BLOCKED_HEAD)] /* SI-RECALC */
+//        ldr     tmp1,    [tmp2, #(OFS_MUTEX_SYNC_POINT + OFS_SYNCPOINT_BLOCKED_HEAD)] /* SI-RECALC */
 
         /* Move to the next mutex. */
-        ldr     tmp2,    [tmp2, #(OFS_MUTEX_HELD_LIST \
-                                + OFS_RINGLIST_NEXT)]          /* SI-RECALC */
+//        ldr     tmp2,    [tmp2, #(OFS_MUTEX_HELD_LIST + OFS_RINGLIST_NEXT)]          /* SI-RECALC */
         /* BUBBLE */
 
         /* If the blocked head on the mutex is non-NULL, load the thread's

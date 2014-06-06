@@ -73,7 +73,7 @@
 #define MAX_SAVED_MESSAGE_REGISTERS 3
 
 class tcb_t;
-class mutex_t;
+//class mutex_t;
 
 /**
  * @brief encapsulate the data of the TCB related to carrying out syscalls.
@@ -198,15 +198,17 @@ public:
         continuation_t thread_ctrl_continuation;
     } thread_ctrl_t;
 
+#if 0
     /**
      * Mutex system call continuation data.
      */
     typedef struct {
         continuation_t mutex_continuation;
-        mutex_t *      mutex;
+        //mutex_t *      mutex;
         bool           uncontended_hybrid;
         word_t *       hybrid_user_state;
     } mutex_t;
+#endif
 
     /**
      * User memory access
@@ -225,7 +227,7 @@ public:
 #ifdef CONFIG_REMOTE_MEMORY_COPY
             remote_memcpy_data_t        memcpy;
 #endif
-            mutex_t                     mutex;
+            //mutex_t                     mutex;
         };
     } user_access_t;
 
