@@ -611,13 +611,7 @@ scheduler_t::activate_sched(tcb_t * tcb, thread_state_t new_state,
                             tcb_t * current, continuation_t continuation,
                             flags_t flags)
 {
-    ASSERT(DEBUG, new_state.is_runnable());
-    ASSERT(DEBUG, !tcb->get_state().is_runnable());
-    ASSERT(ALWAYS, tcb != get_idle_tcb());
-    ASSERT(ALWAYS, tcb != current);
-
     tcb->set_state(new_state);
-    fast_schedule(current, current_tcb_schedulable, tcb, continuation, flags);
 }
 
 INLINE void
@@ -625,10 +619,6 @@ scheduler_t::deactivate_sched(tcb_t * tcb, thread_state_t new_state,
                               tcb_t * current, continuation_t continuation,
                               flags_t flags)
 {
-    ASSERT(DEBUG, !new_state.is_runnable());
-    ASSERT(DEBUG, tcb->get_state().is_runnable());
-    ASSERT(ALWAYS, tcb != get_idle_tcb());
-
     /* Update the deactivated thread's state. */
     tcb->set_state(new_state);
 

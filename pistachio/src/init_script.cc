@@ -1,8 +1,6 @@
 #include <l4.h>
-#include <debug.h>
 
 #include <tcb.h>
-#include <smp.h>
 #include <schedule.h>
 #include <space.h>
 #include <arch/memory.h>
@@ -10,10 +8,8 @@
 #include <arch/hwspace.h>
 #include <kernel/generic/lib.h>
 #include <clist.h>
-#include <caps.h>
 #include <init.h>
 #include <l4/map.h>
-#include <interrupt.h>
 
 #define KI_MAGIC        0x06150128
 #define KI_VERSION      1
@@ -133,11 +129,6 @@ typedef struct
     BITFIELD2(
         word_t,
         utcb_area_log2_size   : SHIFT_1K,
-        /*
-         * Address aligned to 1K,
-         * which matches the
-         * fpage_t definition
-         */
         utcb_area_base        : (BITS_WORD - SHIFT_1K));
 
     BITFIELD3(
@@ -182,33 +173,6 @@ typedef struct
     ki_hdr_t     hdr;
     L4_MapItem_t desc;
 } ki_map_memory_t;
-
-typedef struct
-{
-    ki_hdr_t    hdr;
-    BITFIELD2(
-        word_t,
-        clist_ref        : (BITS_WORD / 2),
-        cap_slot         : (BITS_WORD / 2));
-    word_t      thread_ref;
-} ki_create_ipc_cap_t;
-
-/*
- * implicit argument: space
- */
-typedef struct
-{
-    ki_hdr_t    hdr;
-    word_t      irq;
-} ki_assign_irq_t;
-
-/*
- * implicit argument: space
- */
-typedef struct
-{
-    ki_hdr_t    hdr;
-} ki_allow_platform_control_t;
 
 /*
  * points to the an array of operations filled by Elfweaver
@@ -394,30 +358,6 @@ static void SECTION(SEC_INIT)
     }
 }
 
-static void SECTION(SEC_INIT)
-ki_create_ipc_cap(ki_create_ipc_cap_t *args)
-{
-    tcb_t* tcb = (tcb_t*)ki_get_ptr(args->thread_ref);
-    clist_t* clist = (clist_t*)ki_get_ptr(args->clist_ref);
-    capid_t cap = capid(args->cap_slot);
-    if (!clist->add_ipc_cap(cap, tcb)) {
-    }
-}
-
-static void SECTION(SEC_INIT)
-ki_assign_irq(space_t* space, ki_assign_irq_t *args)
-{
-    if (security_control_interrupt(
-            (struct irq_desc *)&args->irq, space, 0)) {
-    }
-}
-
-static void SECTION(SEC_INIT)
-ki_allow_platform_control(space_t* space, ki_allow_platform_control_t *args)
-{
-    space->allow_plat_control();
-}
-
 static ki_hdr_t* SECTION(SEC_INIT)
 ki_get_first_op()
 {
@@ -487,6 +427,7 @@ run_init_script(word_t phase)
             ki_set_ptr(cur, cur_tcb);
             break;
         }
+
         case KI_OP_CREATE_SEGMENT: {
             ki_create_segment_t *args = (ki_create_segment_t *)cur;
             ki_create_segment(cur_space, args);
@@ -499,11 +440,14 @@ run_init_script(word_t phase)
             break;
         }
 
+#if 0 
         case KI_OP_CREATE_IPC_CAP: {
             ki_create_ipc_cap_t *args = (ki_create_ipc_cap_t *)cur;
             ki_create_ipc_cap(args);
             break;
         }
+#endif
+#if 0
         case KI_OP_ASSIGN_IRQ: {
             ASSERT(ALWAYS, cur_space);
             ki_assign_irq_t *args = (ki_assign_irq_t *)cur;
@@ -512,13 +456,12 @@ run_init_script(word_t phase)
         }
 
         case KI_OP_ALLOW_PLATFORM_CONTROL: {
-            ASSERT(ALWAYS, cur_space);
             ki_allow_platform_control_t *args =
                 (ki_allow_platform_control_t *)cur;
             ki_allow_platform_control(cur_space, args);
             break;
         }
-
+#endif
         default:
             break;
         }

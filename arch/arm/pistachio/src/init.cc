@@ -133,12 +133,7 @@ extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
     }
 
     /* Enable virtual memory, caching etc */
-    write_cp15_register(C15_control, C15_CRm_default,
-                    C15_OP2_default, C15_CONTROL_KERNEL);
-    CPWAIT;
-
-    /* Switch to virtual memory code and stack */
-    switch_to_virt();
+    write_cp15_register(C15_control, C15_CRm_default,C15_OP2_default, C15_CONTROL_KERNEL);
 
     /* Initialize global pointers (requres 1:1 mappings for physbase) */
     init_arm_globals(physbase);
@@ -163,8 +158,6 @@ extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
     /* Map the UTCB reference page */
     r = kspace->add_mapping((addr_t)USER_UTCB_PAGE, virt_to_phys((addr_t) arm_utcb_page),
                             UTCB_AREA_PGSIZE, space_t::read_execute, false, kresource);
-    ASSERT(ALWAYS, r);
-    arm_cache::cache_flush();
 
     jump_to((word_t)startup_system_mmu);
 }
