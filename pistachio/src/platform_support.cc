@@ -65,3 +65,4 @@ void kernel_mem_free(void * address, word_t size)
 {
     get_current_kmem_resource()->free(kmem_group_irq, address, size);
 }
+

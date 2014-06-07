@@ -2061,7 +2061,7 @@ LABEL(arm_abort_return_kernel)
 LABEL(generic_irq)
         SET_KERNEL_DACR_LINKED      /* Macro uses register ip/r12  doesn't touch flags or r0*/
 
-        ldr     r4,     =soc_handle_interrupt
+        //ldr     r4,     =soc_handle_interrupt
 
         bne     kernel_interrupt
 
