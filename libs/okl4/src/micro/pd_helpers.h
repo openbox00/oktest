@@ -31,12 +31,6 @@ _okl4_mcnode_t *_okl4_mem_container_list_remove(_okl4_mcnode_t **head,
         _okl4_mem_container_t *container);
 
 /*
- * Determine if two containers overlap.
- */
-int _okl4_is_container_overlap(_okl4_mem_container_t *a,
-        _okl4_mem_container_t *b);
-
-/*
  * Determine if container 'small' is contained completely within container
  * 'large'.
  */

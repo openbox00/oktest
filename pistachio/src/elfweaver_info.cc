@@ -8,7 +8,6 @@
 #include <tcb.h>
 #include <utcb.h>
 #include <clist.h>
-#include <l4/cache_attribs.h>
 #include <l4/elfweaver_info.h>
 
 SECTION(".elfweaver_info") extern const struct elfweaver_info weaver_info = {
