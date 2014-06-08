@@ -1,11 +1,6 @@
 #include "uart.h"
-#if !defined(NANOKERNEL)
-#include <l4/kdebug.h>
-#endif
-#include <util/trace.h>
 
 enum parity { PARITY_NONE, PARITY_EVEN, PARITY_ODD /* xxx mark/space */};
-//#define BAUD_RATE_CONSTANT 3686400 /* Frequency of the crystal on the SA1100 */
 
 #define DEFAULT_BAUD 115200
 #define DEFAULT_SIZE 8
@@ -269,7 +264,7 @@ do_rx_work(struct pl011_uart_v2 *device)
         data = uartdr_get_data();
 #if !defined(NANOKERNEL)
         if ((data & 0xff) == 0xb) { /* Ctrl-k */
-            L4_KDB_Enter("breakin");
+            //L4_KDB_Enter("breakin");
             continue;
         }
 #endif
@@ -288,7 +283,7 @@ do_rx_work(struct pl011_uart_v2 *device)
                 {
 #if !defined(NANOKERNEL)
                     if ((uartdr_get_data() & 0xff) == 0xb) {
-                         L4_KDB_Enter("breakin");
+                         //L4_KDB_Enter("breakin");
                     }
 #endif
                 }
