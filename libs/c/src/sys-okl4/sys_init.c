@@ -1,7 +1,6 @@
 #include <compat/c.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <threadstate.h>
 #include <okl4/env.h>
 #include <okl4/init.h>
 #include <okl4/types.h>

@@ -2,8 +2,6 @@
 #ifdef __USE_POSIX
 #include <pthread.h>
 #endif
-#include <errno.h>
-
 #include "stream.h"
 #include "threadsafety.h"
 
@@ -40,7 +38,7 @@ fflush(FILE *file)
     if (written == count) {
         ret = 0;
     } else {
-        file->error = errno;
+        //file->error = errno;
     }
 
     return ret;

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <okl4/env.h>
 
 #if defined SERIAL_DRIVER

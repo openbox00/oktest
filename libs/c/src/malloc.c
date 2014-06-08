@@ -8,8 +8,6 @@
 #include <stddef.h>             /* For NULL */
 #include <stdlib.h>
 #include <string.h>             /* For memcpy */
-#include <errno.h>
-#include <assert.h>
 
 #include "threadsafety.h"
 Header __malloc_base;             /* empty list to get started */
@@ -56,7 +54,7 @@ malloc(size_t nbytes)
         }
         if (p == freep) {       /* wrapped around free list */
             if ((p = (Header *)morecore(nunits)) == NULL) {
-                errno = ENOMEM;
+                //errno = ENOMEM;
                 return NULL;    /* none left */
             } else {
 

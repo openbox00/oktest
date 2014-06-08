@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <assert.h>
-
 #include "../k_r_malloc.h"
 #include "../threadsafety.h"
 

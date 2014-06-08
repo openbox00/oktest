@@ -5,7 +5,6 @@
 #include <okl4/kernel.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
 
 #if defined(OKL4_KERNEL_MICRO)
 #include <l4/types.h>

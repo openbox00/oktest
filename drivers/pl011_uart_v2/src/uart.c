@@ -10,7 +10,6 @@ enum parity { PARITY_NONE, PARITY_EVEN, PARITY_ODD /* xxx mark/space */};
 #define UARTICR_TXIC_MASK 32 // bit 5
 #define UARTICR_RTIC_MASK 64 // bit 6
 
-//#define TRACE_UART printf
 #define TRACE_UART(x...)
 
 #define dprintf(arg...) do { } while (0/*CONSTCOND*/);

@@ -5,7 +5,6 @@
 #endif
 
 #include <string.h>
-#include <errno.h>
 
 #include "stream.h"
 #include "threadsafety.h"
@@ -42,7 +41,7 @@ fputc(int c, FILE *stream)
         } else {
             c = EOF;
             stream->eof = 1;
-            stream->error = errno;
+            //stream->error = errno;
         }
     }
 

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +29,6 @@ tmp_write(const void *data, long int position, size_t count, void *handle)
     if (position + count > tmp->total_size) {
         tmp->total_size = position + count;
         tmp_buf = realloc(tmp->buffer, tmp->total_size);
-        assert(tmp_buf != NULL);
         tmp->buffer = tmp_buf;
     }
     memcpy(&tmp->buffer[position], data, count);
@@ -90,10 +88,5 @@ sys_tmpfile(void)
     tmpf->buffer = NULL;
     tmpf->unget_pos = 0;
     tmpf->eof = 0;
-#if 0
-#ifdef THREAD_SAFE
-    OKL4_MUTEX_INIT(&tmpf->mutex);
-#endif
-#endif
     return tmpf;
 }

@@ -16,21 +16,13 @@
 static const char xdigits[16] = "0123456789abcdef";
 static const char Xdigits[16] = "0123456789ABCDEF";
 
-/*
- * Convert an unsigned integer to a string of digits in the specified base. 
- * Buf should point to the END of the buffer: 22 characters is probably big
- * enough.  NO '\0' is appended to buf. 
- * 
- * If u == 0, NO digits are generated.  The '0' is supplied by vfprintf using
- * its default zero padding, except in certain rare situations (e.g., "%.0d"). 
- */
 static inline char *
 umaxtostr(char *buf, uintmax_t u, int base, const char *digits)
 {
     unsigned long u2;
 
     /* generate the digits in reverse order */
-#if UINTMAX_MAX > ULONG_MAX     /*lint -e30 */
+#if 0     /*lint -e30 */
     /*
      * Uintmax_t arithmetic may be very slow.  Use it only until the
      * residual fits in an unsigned long. 
@@ -119,12 +111,6 @@ fprintf1(char *output, FILE *stream, bool stream_or_memory, size_t r, size_t n,
     return r - y;               /* We return the number of chars added */
 }
 
-#include <assert.h>
-/*
- * parse printf format string 
- * if stream_or_memory == 1 -> use fputc, otherwise write to memory
- * if n == -1, then don't check overflow
- */
 int
 format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
               const char *fmt, va_list ap)
