@@ -25,8 +25,6 @@ fflush(FILE *file)
         return ret;
     }
 
-   // lock_stream(file);
-
     /* Write and reset the buffer */
     int count = file->buffer_end - file->buffer;
     int written = file->write_fn(file->buffer, file->current_pos, count, file->handle);
@@ -45,6 +43,5 @@ fflush(FILE *file)
         file->error = errno;
     }
 
-    //unlock_stream(file);
     return ret;
 }

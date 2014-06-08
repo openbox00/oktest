@@ -8,13 +8,8 @@
 #ifndef _THREADSAFETY_H_
 #define _THREADSAFETY_H_
 
-#if defined(NANOKERNEL)
-/* Currently, Nano only uses libokl4 locks. */
-#define LIBOKL4_LOCKS
-#else
 /* Currently, Micro only uses libmutex locks. */
 #define LIBMUTEX_LOCKS
-#endif
 
 #if defined(THREAD_SAFE) && defined(LIBOKL4_LOCKS)
 
@@ -80,27 +75,6 @@ extern OKL4_MUTEX_TYPE malloc_mutex;
 #elif defined(THREAD_SAFE) && defined(LIBMUTEX_LOCKS)
 
 /*
- * Using 'libmutex' to perform locking operations.
- */
-
-//#include <mutex/mutex.h>
-
-/*
- * Setup
- */
-
-/* The data type for a mutex. */
-#define OKL4_MUTEX_TYPE  struct okl4_libmutex
-
-/* Initialise a mutex. */
-#define OKL4_MUTEX_INIT(x) \
-    okl4_libmutex_init(x)
-
-/* Destroy a mutex. */
-#define OKL4_MUTEX_FREE(x) \
-    okl4_libmutex_free(x)
-
-/*
  * Stream locking / unlocking.
  */
 #define lock_stream(s) \
@@ -128,7 +102,6 @@ extern OKL4_MUTEX_TYPE malloc_mutex;
 #define MALLOC_UNLOCK \
     okl4_libmutex_count_unlock(&malloc_mutex)
 
-extern OKL4_MUTEX_TYPE malloc_mutex;
 
 #elif !defined(THREAD_SAFE)
 

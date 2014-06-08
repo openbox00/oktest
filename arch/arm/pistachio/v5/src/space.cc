@@ -32,18 +32,7 @@ void SECTION(".init") init_kernel_space()
 {
     space_t * kspace = get_kernel_space();
 
-    TRACE_INIT("Initializing kernel space @ %p...\n\r", get_kernel_space());
-
-#if 0
-    fpage.set(USER_KIP_PAGE, KIP_KIP_BITS, true, true, true);
-    kspace->set_kip_area(fpage);
-    fpage.set(UTCB_AREA_START, UTCB_AREA_BITS, true, true, true);
-    kspace->set_utcb_area(fpage);
-#endif
-
     kspace->init_kernel_mappings();
-
-    //kspace->set_space_id(spaceid_t::kernelspace());
 
     get_arm_fass()->init();
 
@@ -67,13 +56,10 @@ word_t space_t::space_control_window(word_t ctrl)
     }
 
     if (ctrl == L4_SPACE_RESOURCES_WINDOW_MANAGE) {
-        // printf("manage: %S access to %S\n", target_space, dest);
         r = this->add_shared_domain(dest, true);
     } else if (ctrl == L4_SPACE_RESOURCES_WINDOW_GRANT) {
-        // printf("shared: %S access to %S\n", target_space, dest);
         r = this->add_shared_domain(dest, false);
     } else if (ctrl == L4_SPACE_RESOURCES_WINDOW_REVOKE) {
-        // printf("unshare: %S access to %S\n", target_space, dest);
         r = this->remove_shared_domain(dest);
     } else {
         return 1;
@@ -128,7 +114,6 @@ bool generic_space_t::init (fpage_t utcb_page,
 void generic_space_t::arch_free(kmem_resource_t *kresource)
 {
     word_t section;
-    // TRACEF("freed utcb_section %d for %p\n", get_space_id(), this);
 
     section = ( UTCB_AREA_START/ARM_SECTION_SIZE + (get_space_id().get_spaceno()) );
 
@@ -138,7 +123,6 @@ void generic_space_t::arch_free(kmem_resource_t *kresource)
     get_cpd()[section] = entry;
 
     pg = ((space_t *)this)->pgent_utcb();
-    //printf("[a] pg=%p, *pg=%lx\n", pg, *pg);
     if (pg->raw) {
         pg->remove_subtree (this, pgent_t::size_1m, true, kresource);
     }
@@ -160,7 +144,6 @@ void generic_space_t::arch_free(kmem_resource_t *kresource)
 utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
                                         kmem_resource_t *kresource)
 {
-    ASSERT (DEBUG, tcb);
     bitmap_t * utcb_bitmap = ((space_t *)this)->get_utcb_bitmap();
     int pos = bitmap_findfirstset(utcb_bitmap, UTCB_BITMAP_LENGTH);
 
@@ -226,8 +209,6 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
             *source++ = 0x0;
         }
     }
-//TRACEF("Using UTCB %ld (%p) for tcb %p  (%s)\n", pos, utcb, tcb,
-//              is_valid ? "valid map" : "new map");
     tcb->set_utcb_location((word_t)utcb);
     return utcb;
 }
@@ -340,7 +321,6 @@ void generic_space_t::free_page_directory(kmem_resource_t *kresource)
  */
 void generic_space_t::activate(tcb_t *tcb)
 {
-#if defined(CONFIG_ENABLE_FASS)
     if (this != get_kernel_space())
     {
         USER_UTCB_REF = tcb->get_utcb_location();
@@ -355,9 +335,6 @@ void generic_space_t::activate(tcb_t *tcb)
     {
         get_arm_fass()->activate_domain((space_t *)NULL);
     }
-#else
-#error Not implemented.
-#endif
 }
 
 /*
@@ -393,10 +370,6 @@ bool space_t::add_shared_domain(space_t *space, bool manager)
     word_t thisid = this->get_space_id().get_spaceno();
 
     if (bitmap_isset(space->get_client_spaces_bitmap(), thisid)) {
-//printf("already added\n");
-        // XXX: We reshare the domain to sync up mappings.
-        //get_current_tcb()->set_error_code(EINVALID_PARAM);
-        //return false;
     }
 
     bitmap_set(space->get_client_spaces_bitmap(), thisid);
@@ -458,11 +431,9 @@ void space_t::flush_sharing_spaces(void)
     ASSERT(DEBUG, this->domain != INVALID_DOMAIN);
 
     if (bitmap_isallclear(this->get_client_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-        //printf("%p flush - no shares!\n", this);
         return;
     }
 
-    //printf("%p flush - with shares!\n", this);
     for (i = 0; i < CONFIG_MAX_SPACES; i++) {
         if (bitmap_isset(this->get_client_spaces_bitmap(), i)) {
             space_t *space = get_space_list()->lookup_space(spaceid(i));
@@ -470,14 +441,7 @@ void space_t::flush_sharing_spaces(void)
             /* Check for valid space id */
             if (EXPECT_FALSE( space == NULL ))
             {
-                panic("found null space in client list");
-//                printf("lazy clear spc %ld\n", i);
-//                bitmap_clear(this->get_share_bitmap(), i);
-//                continue;
             }
-
-            //printf("remove shared  %p : %d\n", space, domain);
-            //printf("dmsk rm: %p->%p\n", this, space);
             space->remove_domain_access(this->domain);
             if (space == get_current_space()) {
                 current_domain_mask = space->get_domain_mask();
@@ -491,9 +455,7 @@ void space_t::flush_sharing_on_delete(void)
     word_t i;
 
     if (bitmap_isallclear(this->get_shared_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-        //printf("%p flush - no shares!\n", this);
     } else {
-        //printf("%p delete - WITH SHARES!\n", this);
         for (i = 0; i < CONFIG_MAX_SPACES; i++) {
             if (bitmap_isset(this->get_shared_spaces_bitmap(), i)) {
                 space_t *source = get_space_list()->lookup_space(spaceid(i));
@@ -502,22 +464,14 @@ void space_t::flush_sharing_on_delete(void)
                 if (EXPECT_FALSE( source == NULL ))
                 {
                     panic("found null space in source list");
-                    //                printf("lazy clear spc %ld\n", i);
-                    //                bitmap_clear(this->get_share_bitmap(), i);
-                    //continue;
                 }
-
-                //printf("remove shared  %p : %d\n", space, domain);
-                //printf("dmsk rm: %p->%p\n", this, space);
 
                 bitmap_clear(source->get_client_spaces_bitmap(), this->get_space_id().get_spaceno());
             }
         }
     }
     if (bitmap_isallclear(this->get_client_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-        //printf("%p flush - no shares!\n", this);
     } else {
-        //printf("%p delete - with shares!\n", this);
         for (i = 0; i < CONFIG_MAX_SPACES; i++) {
             if (bitmap_isset(this->get_client_spaces_bitmap(), i)) {
                 space_t *space = get_space_list()->lookup_space(spaceid(i));
@@ -525,13 +479,7 @@ void space_t::flush_sharing_on_delete(void)
                 /* Check for valid space id */
                 if (EXPECT_FALSE( space == NULL ))
                 {
-                    panic("found null space in client list");
-                    //                printf("lazy clear spc %ld\n", i);
-                    //                bitmap_clear(this->get_share_bitmap(), i);
-                    //continue;
                 }
-
-                printf("del: %S, remove client space %S\n", this, space);
                 (void) space->remove_shared_domain(this);
             }
         }
@@ -544,10 +492,8 @@ bool space_t::is_client_space(space_t *space)
     word_t spc_no = space->get_space_id().get_spaceno();
 
     if (bitmap_isset(this->get_client_spaces_bitmap(), spc_no)) {
-        //printf("%p is_shared by %p\n", this, space);
         return true;
     }
-    //printf("%p is_NOT_shared by %p\n", this, space);
     return false;
 }
 
@@ -556,7 +502,6 @@ void space_t::set_vspace(word_t vspace)
     if ((vspace == 0) || get_current_space()->space_range.is_valid(vspace)) {
         this->bits.vspace = vspace;
     } else {
-        TRACEF("bad vspace id\n");
         this->bits.vspace = 0;
     }
 }

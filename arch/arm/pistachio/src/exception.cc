@@ -14,14 +14,6 @@
 #include <soc/arch/soc.h>
 #include <arch/intctrl.h>
 
-#if defined(CONFIG_PERF) &&                                             \
-    (defined(CONFIG_CPU_ARM_XSCALE) || (defined(ARCH_ARM) && (ARCH_VER == 6)))
-#include <plat/interrupt.h>
-unsigned long count_CCNT_overflow;
-unsigned long count_PMN0_overflow;
-unsigned long count_PMN1_overflow;
-#endif
-
 NORETURN INLINE void
 halt_user_thread(continuation_t continuation)
 {

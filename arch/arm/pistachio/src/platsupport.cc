@@ -11,21 +11,7 @@
 #include <arch/pgent.h>
 #include <arch/page.h>
 
-
-int do_printf(const char* format_p, va_list args);
-
-extern "C" void kernel_enter_kdebug(const char* s)
-{
-    enter_kdebug(s);
-}
-
-extern "C" void kernel_fatal_error(const char* s)
-{
-    panic(s);
-}
-
 #define MAX_IO_AREAS 16
-
 
 bitmap_t mappings = 0;
 
@@ -86,47 +72,3 @@ kernel_add_mapping(word_t size,
     }
     return base;
 }
-
-extern "C" bool
-kernel_add_mapping_va(addr_t virt,
-                      word_t size,
-                      addr_t phys,
-                      word_t cache_attr)
-{
-    space_t           *space = get_kernel_space();
-    word_t             end = (word_t)virt + size;
-    pgent_t::pgsize_e  pgsize = pgent_t::size_4k; // Avoiding flint warning
-    word_t             area;
-    word_t             final_size;
-
-    /* The address needs to sit within the IO address areas */
-    if (!((word_t)virt >= IO_AREA_START && end < IO_AREA_END)) {
-        return false;
-    }
-
-    ROUND_SIZE(size, pgsize, final_size, 0);
-
-    if (final_size == 0) {
-        return false;
-    }
-
-    /*
-     * Find where in the IO space they want - is it free?
-     */
-    area = ((word_t)virt - IO_AREA_START) / ARM_SECTION_SIZE;
-    if (bitmap_isset(&mappings, area)) {
-        return false;
-    }
-
-    kmem_resource_t *kresource = get_kernel_space()->get_kmem_resource();
-
-    if (space->add_mapping(virt, phys, pgsize, space_t::read_write_ex, true,
-                           (memattrib_e)cache_attr,
-                           kresource)) {
-        bitmap_set(&mappings, area);
-        return true;
-    } else {
-        return false;
-    }
-}
-

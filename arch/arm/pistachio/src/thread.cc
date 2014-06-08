@@ -17,6 +17,7 @@
  * This function does not use any other stored
  * state from the TCB
  */
+
 CONTINUATION_FUNCTION(do_ipc_helper)
 {
     tcb_t * current = get_current_tcb();

@@ -76,8 +76,6 @@ void switch_to(tcb_t * dest, tcb_t * schedule)
     if (EXPECT_FALSE(dest->resource_bits)) {
         dest->resources.load(dest);
     }
-
-#ifdef CONFIG_ENABLE_FASS
     /* Activate new FASS domain. */
     if (EXPECT_TRUE(dest_space != get_current_tcb()->get_space())) {
         get_arm_fass()->activate_domain(dest_space);
@@ -93,9 +91,6 @@ void switch_to(tcb_t * dest, tcb_t * schedule)
     asm_switch_to(dest->cont, (word_t)dest, dest->get_utcb_location());
 
     while(1);
-#else
-#error FIXME
-#endif
 }
 
 #include <schedule.h>

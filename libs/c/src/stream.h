@@ -23,12 +23,6 @@ struct __file {
 
     unsigned char unget_pos;
     long int current_pos;
-#if 0
-#ifdef THREAD_SAFE
-    int mutex_initialised;
-    OKL4_MUTEX_TYPE mutex;
-#endif
-#endif
     int eof;
     int error;
 

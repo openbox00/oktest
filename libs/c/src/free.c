@@ -14,9 +14,6 @@ free(void *ap)
     if (ap == NULL) {
         return;
     }
-
-    //MALLOC_LOCK;
-
     if (freep == NULL) {        /* no free list yet */
         base.s.ptr = freep = &base;
         base.s.size = 0;

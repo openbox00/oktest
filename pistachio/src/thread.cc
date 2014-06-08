@@ -140,8 +140,6 @@ free_tcb(tcb_t *tcb)
  */
 void tcb_t::init(void)
 {
-    ASSERT(DEBUG, this);
-
     /* clear utcb and space */
     utcb = NULL;
     space = NULL;
@@ -155,9 +153,6 @@ void tcb_t::init(void)
     /* Initialize queues */
     ready_list.next = NULL;
     blocked_list.next = NULL;
-
-    /* initialize thread resources */
-    resources.init(this);
 
     /* flags */
     runtime_flags = 0;
