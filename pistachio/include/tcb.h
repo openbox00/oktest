@@ -33,12 +33,8 @@ class kmem_resource_t;
 class tcb_t
 {
 public:
-    /* public functions */
     bool activate(void (*startup_func)(), kmem_resource_t *kresource);
-
     bool create_kernel_thread(utcb_t * utcb);
-
-    /* thread deletion */
     void delete_tcb(kmem_resource_t *kresource);
     void cancel_ipcs();
     bool release_mutexes();
@@ -46,94 +42,34 @@ public:
     bool migrate_to_domain(cpu_context_t context);
 
     void unwind(tcb_t *partner);
-
-    /*
-     *  Queue manipulations
-     */
-
     void enqueue_present();
     void dequeue_present();
-
-    /*
-     * Mutex handle
-     * CVS: this will be removed in future versions
-     */
     void set_mutex_thread_handle(capid_t handle);
-
-    /*
-     * UTCB access
-     */
     bool check_utcb_location (void);
     void set_utcb_location (word_t location);
     word_t get_utcb_location();
 
     void set_error_code (word_t err);
     word_t get_error_code (void);
-
-#if !defined(CONFIG_MUNITS)
 private:
-#endif
-    /** Set the state of the thread to the given state. Should
-     * only be used internally by the class or by the scheduler. */
     void set_state(thread_state_t state);
-
-    /** Get the current state of the thread. */
 public:
     thread_state_t get_state();
-
-    /** Initialise a new thread's state to the given state. */
     void initialise_state(thread_state_t state);
-
-    /** Get architecture-specific TCB data. */
     arch_ktcb_t * get_arch();
 
     void save_state(word_t mrs = MAX_SAVED_MESSAGE_REGISTERS);
     void restore_state(word_t mrs = MAX_SAVED_MESSAGE_REGISTERS);
-
-    /* thread state - global scheduler */
     bool grab();
     void release();
     bool is_grabbed_by_me();
-
-    /**
-     * @brief Set the syncpoint that this thread is currently blocked on.
-     *
-     * @param syncpoint  The synchronisation point this thread is currently
-     *                   blocked on.
-     */
     INLINE void set_waiting_for(syncpoint_t * syncpoint);
-
-    /**
-     * @brief Get the syncpoint that this thread is currently blocked on.
-     *
-     * @return The syncpoint that this thread is currently blocked on.
-     */
-    //INLINE syncpoint_t * get_waiting_for(void);
-
-    /**
-     * @brief If this thread is currently blocked on a syncpoint, unblock it.
-     */
     void remove_dependency(void);
-
-    /** Return this thread's end-point. */
     INLINE endpoint_t * get_endpoint(void);
-
-    /**
-     *  Mark this thread as reserved, and should not be added back
-     *  onto the scheduling queue.
-     */
     INLINE void reserve(void);
-
-    /** Unreserve this thread, allowing it to be enqueued once again. */
     INLINE void unreserve(void);
-
-    /** Determine if this thread has been reserved. */
     INLINE bool is_reserved(void);
-
-    /* context - usually set through set_scheduled */
     cpu_context_t get_context();
-
-    /* ipc */
     void set_partner(tcb_t *partner);
     tcb_t * get_partner();
     bool is_partner_valid();
@@ -143,48 +79,14 @@ public:
     word_t get_mr(word_t index);
     void set_mr(word_t index, word_t value);
     bool copy_mrs(tcb_t * dest, word_t start, word_t count);
-
-    /**
-     * Convenience function to perform an ipc to a user thread from
-     * within the kernel The message must be in the current threads
-     * message registers.
-     *
-     * This function basically invokes SYS_IPC, and handles the return
-     * from this function through the activation of it's continuation
-     * function.
-     *
-     * The tag that used to be returned by this function can now be
-     * accessed from the UTCB's MR0
-     *
-     * @param to_tcb the thread to send the message to
-     * @param from_tcb the thread to receive a message from
-     * @param continuation the continuation to activate when control is resumed
-     */
     void do_ipc(tcb_t *to_tcb, tcb_t *from_tcb,
             continuation_t continuation) NORETURN;
 
     void send_pagefault_ipc(addr_t addr, addr_t ip, space_t::access_e access,
             continuation_t continuation) NORETURN;
-
-    /**
-     * Return to user directly from an ipc without using the normal
-     * continuations
-     *
-     * This is used for cancelling IPC's through unwind
-     */
     void return_from_ipc(void) NORETURN;
-    /**
-     * Return to user directly from an exception or irq context without
-     * activating the normal continuations
-     *
-     * This is used for cancelling pagefault/IRQ Ipcs
-     */
     void return_from_user_interruption(void) NORETURN;
-
-    /* thread notification */
     void notify(continuation_t continuation);
-
-    /* thread manipulation */
     addr_t get_user_ip();
     addr_t get_user_sp();
     void set_user_ip(addr_t ip);
@@ -194,35 +96,20 @@ public:
     void copy_mrs_to_regs(tcb_t *dest);
     void copy_regs_to_mrs(tcb_t *src);
     void copy(tcb_t *src);
-
-    /* suspend / resume support */
     bool is_suspended();
     void set_suspended(bool new_state);
-
-    /* Setup a function to be called back prior to this thread next
-     * returning to userspace from either an exception or system
-     * call. */
     void set_post_syscall_callback(callback_func_t func);
     callback_func_t get_post_syscall_callback();
-
-    /* preemption callback signaling */
     addr_t get_preempted_ip();
     void set_preempted_ip(addr_t ip);
     addr_t get_preempt_callback_ip();
-
-    /* sender space id */
     void set_sender_space(spaceid_t space_id);
     spaceid_t get_sender_space();
-
-    /* space */
     spaceid_t get_space_id() const PURE;
     space_t * get_space() const PURE;
     void set_space(space_t * space);
-
     bool is_local_domain();
     bool is_local_unit();
-
-    /* utcb access functions */
     utcb_t * get_utcb() const PURE;
     void set_utcb(utcb_t *new_utcb);
 
@@ -238,8 +125,6 @@ public:
 
     word_t get_user_handle();
     word_t get_user_flags();
-    preempt_flags_t get_preempt_flags();
-    void set_preempt_flags(preempt_flags_t flags);
     u8_t get_cop_flags();
     word_t * get_reg_stack_bottom (void);
     acceptor_t get_acceptor();
@@ -250,52 +135,13 @@ public:
     bool copy_exception_mrs_from_frame(tcb_t *dest);
     bool copy_exception_mrs_to_frame(tcb_t *dest);
 
-#ifdef CONFIG_SCHEDULE_INHERITANCE
-    /** Calculate, but don't modify, a thread's effective priority. */
-    prio_t calc_effective_priority();
-#endif
-
     /* asynchronous notification */
     void clear_notify_bits();
     word_t add_notify_bits(const word_t bits);
     word_t sub_notify_bits(const word_t bits);
     void set_notify_mask(const word_t mask);
-    /**
-     * This function sets the threads state in such a way that
-     * preemption is safe and when resumed after preemption the thread
-     * will activate the given continuation
-     *
-     * Note: This functions does not enable preemption, simply makes
-     * it safe to enable
-     *
-     * It is generally not possible to return to user after this
-     * function has been called without calling
-     * disable_preempt_recover first
-     *
-     * This is not a control function even though it takes a
-     * continuation argument - ie it will return normally, not by
-     * activating the continuation
-     *
-     * @param continuation  Continuation to activate upon resumption
-     *                      from preemption.
-     */
     void enable_preempt_recover(continuation_t continuation);
-    /**
-     * This function sets the threads state back to normal, so that
-     * preemption is once again unsafe but normal return to user is
-     * possible.
-     *
-     * It is safe to call this function even if enable_preempt_recover
-     * has not been called.
-     */
     void disable_preempt_recover();
-    /**
-     * These functions control access to the fault on user address
-     * support.
-     *
-     * Note: These functions are not control functions even if they
-     * take a continuation_t as an argument.
-     */
     void set_user_access(continuation_t cont);
     void clear_user_access(void);
     bool user_access_enabled(void);
@@ -303,18 +149,9 @@ public:
 
     word_t get_notify_bits();
     word_t get_notify_mask();
-
-    /*
-     * Thread Locking
-     *
-     * Write - lock for modify/delete TCB, read lock for IPC etc
-     */
-    bool try_lock_read() { return thread_lock.try_lock_read(); };
-    bool try_lock_write() { return thread_lock.try_lock_write(); };
-    void lock_read_already_held() { return thread_lock.lock_read_already_held(); }
-    void unlock_read() { thread_lock.unlock_read(); };
-    void unlock_write() { thread_lock.unlock_write(); };
-    bool is_locked() { return thread_lock.is_locked(); };
+    bool try_lock_read() { return true; };
+    bool try_lock_write() { return true; };
+    bool is_locked() { return true; };
 
     /* IPC Control. */
     bool has_ipc_restrictions(void);
@@ -528,7 +365,7 @@ tcb_t* acquire_read_lock_tcb(tcb_t *tcb, tcb_t *tcb_locked = NULL);
 INLINE tcb_t* acquire_read_lock_current(tcb_t *current, tcb_t *tcb_locked = NULL)
 {
     if (current == tcb_locked) {
-        current->lock_read_already_held();
+        //current->lock_read_already_held();
     } else if (EXPECT_FALSE(!current->try_lock_read())) {
         return NULL;
     }
@@ -767,22 +604,24 @@ INLINE word_t tcb_t::get_error_code(void)
  * Get a thread's preemption flags
  * @return      preemption flags
  */
+/*
 INLINE preempt_flags_t tcb_t::get_preempt_flags (void)
 {
     preempt_flags_t flags;
     flags.raw = get_utcb()->preempt_flags;
     return flags;
 }
-
+*/
 /**
  * Set a thread's preemption flags
  * @param flags new preemption flags
  */
+/*
 INLINE void tcb_t::set_preempt_flags (preempt_flags_t flags)
 {
     get_utcb()->preempt_flags = flags.raw;
 }
-
+*/
 /**
  * Get a thread's coprocessor flags
  * @return      coprocessor flags
@@ -950,7 +789,6 @@ INLINE void init_idle_tcb()
     extern tcb_t* __idle_tcb[];
     int index = 0;
     __idle_tcb[index] = (tcb_t *)get_current_kmem_resource()->alloc(kmem_group_tcb, true);
-    memset(__idle_tcb[index], 0, KTCB_SIZE);
     __idle_tcb[index]->tcb_idx = INVALID_RAW;
 }
 

@@ -225,12 +225,6 @@ ki_create_thread_handles(ki_create_thread_handles_t *args)
 {
     extern tcb_t** thread_handle_array;
     extern word_t num_tcbs;
-
-    /*
-     * A reminder of the comment against the declaraion of
-     * ki_create_thread_handles_t - size describes 4-word multiples.  As
-     * each tcb_t pointer is 1 word this equates to num_tcbs * 4.
-     */
     thread_handle_array = (tcb_t **)phys_to_virt(args->phys << SHIFT_1K);
     num_tcbs = (args->size * 4);
 }
@@ -267,10 +261,7 @@ ki_create_space(kmem_resource_t * res, clist_t* clist, ki_create_space_t* args)
     }
 
     if (args->num_physical_segs > 0) {
-        space->phys_segment_list = (segment_list_t*)
-            res->alloc(kmem_group_physseg_list, sizeof(segment_list_t) +
-                    ((args->num_physical_segs - 1) * sizeof(phys_segment_t*)),
-                    true);
+        space->phys_segment_list = (segment_list_t*)res->alloc(kmem_group_physseg_list, sizeof(segment_list_t) + ((args->num_physical_segs - 1) * sizeof(phys_segment_t*)), true);
 
         space->phys_segment_list->set_num_segments(args->num_physical_segs);
     }
@@ -338,13 +329,8 @@ ki_create_segment(space_t* space, ki_create_segment_t *args)
 
 extern bool map_region (space_t * space, word_t vaddr, word_t paddr, word_t size, word_t attr, word_t rwx, kmem_resource_t *kresource);
 
-/*
- * This macro is temporary; once map_region() changes to the new form it
- * will go away.
- */
 #define MAP_PGSIZE(pgs) (1UL << pgs)
 
-// XXX : use segment
 static void SECTION(SEC_INIT)
     ki_map_memory(space_t* space, ki_map_memory_t *args, kmem_resource_t *cur_heap)
 {
@@ -439,29 +425,6 @@ run_init_script(word_t phase)
             ki_map_memory(cur_space, args, cur_heap);
             break;
         }
-
-#if 0 
-        case KI_OP_CREATE_IPC_CAP: {
-            ki_create_ipc_cap_t *args = (ki_create_ipc_cap_t *)cur;
-            ki_create_ipc_cap(args);
-            break;
-        }
-#endif
-#if 0
-        case KI_OP_ASSIGN_IRQ: {
-            ASSERT(ALWAYS, cur_space);
-            ki_assign_irq_t *args = (ki_assign_irq_t *)cur;
-            ki_assign_irq(cur_space, args);
-            break;
-        }
-
-        case KI_OP_ALLOW_PLATFORM_CONTROL: {
-            ki_allow_platform_control_t *args =
-                (ki_allow_platform_control_t *)cur;
-            ki_allow_platform_control(cur_space, args);
-            break;
-        }
-#endif
         default:
             break;
         }

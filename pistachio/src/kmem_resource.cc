@@ -30,10 +30,9 @@ kmem_resource_t * get_current_kmem_resource()
 void kmem_resource_t::init_small_alloc_pools(void)
 {
     /* init small alloc pool with no max limit */
-    small_alloc_pools[kmem_group_space].init(&kmem_groups[kmem_group_space],
-            sizeof(space_t));
-    small_alloc_pools[kmem_group_tcb].init(&kmem_groups[kmem_group_tcb],
-            KTCB_SIZE);
+
+    small_alloc_pools[kmem_group_space].init(&kmem_groups[kmem_group_space], sizeof(space_t));
+    small_alloc_pools[kmem_group_tcb].init(&kmem_groups[kmem_group_tcb],KTCB_SIZE);
     
     arch_init_small_alloc_pools();
 }
@@ -66,15 +65,5 @@ void * kmem_resource_t::alloc(kmem_group_e group, word_t size, bool zeroed)
 
 void kmem_resource_t::free(kmem_group_e group, void * address, word_t size)
 {
-    lock.lock();
-    if (size == 0)
-    {
-        small_alloc_pools[group].free(address);
-    }
-    else
-    {
-        heap.free(&kmem_groups[group], address, size);
-    }
-    lock.unlock();
 }
 

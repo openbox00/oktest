@@ -10,8 +10,6 @@
 
 GLOBAL_DEF(clist_t *current_clist = NULL)
 
-DEFINE_READ_WRITE_LOCK(cap_reference_t::cap_reference_lock);
-
 /* Table containing mappings from clistid_t to clist_t* */
 clistid_lookup_t clist_lookup;
 
@@ -23,8 +21,6 @@ void SECTION(SEC_INIT) init_clistids(word_t max_clistids,
     new_table = kresource->alloc(kmem_group_clistids, sizeof(clist_t*) * max_clistids, true);
 
     clist_lookup.init(new_table, max_clistids);
-
-    cap_reference_t::cap_reference_lock.init();
 }
 
 clist_t *create_clist(kmem_resource_t *res, word_t id, word_t max_caps)
@@ -73,7 +69,7 @@ again:
         }
     } else {
         if (tcb == tcb_locked) {
-            tcb->lock_read_already_held();
+            //tcb->lock_read_already_held();
         } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
             okl4_atomic_barrier_smp();
             goto again;
@@ -122,7 +118,7 @@ tcb_t* clist_t::lookup_ipc_cap_locked(capid_t tid, tcb_t *tcb_locked)
     }
 
 again:
-    okl4_atomic_barrier_smp();
+    //okl4_atomic_barrier_smp();
     /* Thread ID appears valid. Get the entry. */
     cap_t entry = this->entries[tid.get_index()];
 
@@ -132,9 +128,9 @@ again:
     tcb = entry.get_tcb();
 
     if (tcb == tcb_locked) {
-        tcb->lock_read_already_held();
+        //tcb->lock_read_already_held();
     } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
-        okl4_atomic_barrier_smp();
+        //okl4_atomic_barrier_smp();
         goto again;
     }
     return tcb;
@@ -212,7 +208,7 @@ bool clist_t::remove_ipc_cap(capid_t tid)
 {
     list_lock.lock();
 again:
-    okl4_atomic_barrier_smp();
+    //okl4_atomic_barrier_smp();
     /* Remove the entry. */
     cap_t entry = this->entries[tid.get_index()];
 
@@ -225,7 +221,7 @@ again:
         okl4_atomic_barrier_smp();
         goto again;
     }
-    tcb->unlock_write();
+    //tcb->unlock_write();
 
     list_lock.unlock();
     return true;

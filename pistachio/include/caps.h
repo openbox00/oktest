@@ -22,7 +22,7 @@ class tcb_t;
 
 namespace cap_reference_t
 {
-    DECLARE_READ_WRITE_LOCK(cap_reference_lock);
+    //DECLARE_READ_WRITE_LOCK(cap_reference_lock);
 
     void add_reference(cap_t *master_cap, cap_t *cap);
     void remove_reference(cap_t *master_cap, cap_t *cap);

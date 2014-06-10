@@ -123,19 +123,11 @@ void tcb_t::init(void)
     runtime_flags = 0;
     post_syscall_callback = NULL;
 
-
-    /* Lock initialization */
-    this->thread_lock.init();
-
     /* IPC Control initialization */
     space_id = spaceid_t::kernelspace();
 
     /* initialize scheduling */
     get_current_scheduler()->init_tcb(this);
-
-    /* enqueue into present list, do not enqueue
-     * the idle thread since they are CPU local and break
-     * the pointer list */
     enqueue_present();
 
     init_stack();
@@ -164,12 +156,6 @@ bool tcb_t::activate(void (*startup_func)(), kmem_resource_t *kresource)
     this->utcb = get_space()->allocate_utcb(this, kresource);
     if (!this->utcb)
         return false;
-
-#ifdef CONFIG_PLAT_SURF
-    /* Init debug profiling */
-    prof_set_id_init(this->utcb);
-#endif
-
     this->space_id = get_space()->get_space_id();
 
     /* update mutex thread handle in UTCB */
@@ -190,27 +176,12 @@ bool tcb_t::activate(void (*startup_func)(), kmem_resource_t *kresource)
  */
 bool generic_space_t::check_utcb_location (word_t utcb_address)
 {
-#ifdef NO_UTCB_RELOCATE
-    /* UTCB is kernel allocated, utcb_address must be -1UL */
-    return utcb_address == ~0UL;
-#else
     return (((word_t)addr_align((addr_t)utcb_address, 
                                 CONFIG_UTCB_SIZE) == utcb_address) &&
             get_utcb_area().is_range_in_fpage((addr_t) utcb_address,
                                               (addr_t) (utcb_address +
                                                         sizeof (utcb_t))));
-#endif
 }
-
-/**
- * Cancel all pending IPCs related to this thread, and change the thread
- * into an aborted state.
- *
- * This will unwind the IPC of any thread currently sending to us, and if we
- * are currently blocked on a send or receive, cancel that as well.
- *
- * Function must be called with current thread locked.
- */
 void
 tcb_t::cancel_ipcs(void)
 {
@@ -311,7 +282,7 @@ try_valid_cap_lookup:
         /* if cap still points to this tcb */
         if (EXPECT_TRUE(cap_tcb == tcb)) {
             if (tcb == tcb_locked) {
-                tcb->lock_read_already_held();
+                //tcb->lock_read_already_held();
             } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
                 okl4_atomic_barrier_smp();
                 goto try_valid_cap_lookup;
@@ -601,32 +572,6 @@ start_post_syscall_callback(void)
     ACTIVATE_CONTINUATION(cont);
 }
 
-#ifdef CONFIG_SCHEDULE_INHERITANCE
-/**
- * Determine the highest priority syncpoint we currently hold.
- */
-#if !defined(CONFIG_ENABLE_FASTPATHS) \
-        || !defined(HAVE_TCB_CALC_EFFECTIVE_PRIO_FASTPATH)
-prio_t
-tcb_t::calc_effective_priority()
-{
-    prio_t max = this->base_prio;
-
-    tcb_t * send_head = this->end_point.get_send_head();
-    if (send_head != NULL && send_head->effective_prio > max) {
-        max = send_head->effective_prio;
-    }
-
-    /* Threads attempting to receive from us... */
-    tcb_t * recv_head = this->end_point.get_recv_head();
-    if (recv_head != NULL && recv_head->effective_prio > max) {
-        max = recv_head->effective_prio;
-    }
-    return max;
-}
-#endif
-#endif
-
 void
 tcb_t::remove_dependency(void)
 {
@@ -728,7 +673,7 @@ modify_try_again:
             {
                 /* do not allow deletion of ourself */
                 current->set_error_code (EINVALID_THREAD);
-                dest_tcb->unlock_write();
+               // dest_tcb->unlock_write();
                 goto error_out;
             }
             else
@@ -738,7 +683,7 @@ modify_try_again:
 
                 if (!get_current_clist()->remove_thread_cap(dest_tid)) {
                     /* the cap was modified underneath us */
-                    dest_tcb->unlock_write();
+                    //dest_tcb->unlock_write();
                     goto modify_try_again;
                 }
                 space->remove_tcb(dest_tcb);
@@ -756,14 +701,14 @@ modify_try_again:
             {
                 /* cannot modify UTCB address */
                 current->set_error_code (EUTCB_AREA);
-                dest_tcb->unlock_write();
+                //dest_tcb->unlock_write();
                 goto error_out;
             }
 
             /* setup thread helpers */
             if (!set_thread_handlers(dest_tcb, pager_tid, except_handler_tid)) {
                 current->set_error_code(EINVALID_PARAM);
-                dest_tcb->unlock_write();
+               // dest_tcb->unlock_write();
                 goto error_out;
             }
 
@@ -772,12 +717,12 @@ modify_try_again:
                 if (!dest_tcb->resources.control(dest_tcb, thread_resources,
                                                  kresource)) {
                     /* error code set in resources.control */
-                    dest_tcb->unlock_write();
+                 //   dest_tcb->unlock_write();
                     goto error_out;
                 }
             }
 
-            dest_tcb->unlock_write();
+           // dest_tcb->unlock_write();
         } // modification
     }
     else
@@ -858,7 +803,7 @@ modify_try_again:
         }
         /* Set new thread's thread handle in MR0. */
         current->set_mr(0, threadhandle(dest_tcb->tcb_idx).get_raw());
-        dest_tcb->unlock_write();
+        //dest_tcb->unlock_write();
     }
 
     if (need_to_schedule) {
@@ -868,7 +813,7 @@ modify_try_again:
                 scheduler_t::sched_default);
         NOTREACHED();
     }
-    UNLOCK_PRIVILEGED_SYSCALL();
+    //UNLOCK_PRIVILEGED_SYSCALL();
     return_thread_control(1, continuation);
     NOTREACHED();
 
@@ -883,10 +828,10 @@ free_tcb_error_out:
     }
 
 free_cap_error_out:
-    dest_tcb->unlock_write();
-    UNLOCK_PRIVILEGED_SYSCALL();
+    //dest_tcb->unlock_write();
+   // UNLOCK_PRIVILEGED_SYSCALL();
     dest_tcb->delete_tcb(kresource);
-    LOCK_PRIVILEGED_SYSCALL();
+   // LOCK_PRIVILEGED_SYSCALL();
 
 error_out:
     /* Hit an error. Abort the system call. */

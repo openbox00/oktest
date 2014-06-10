@@ -22,24 +22,12 @@ extern "C" NORETURN void
 send_exception_ipc (word_t exc_no, word_t exc_code,
         arm_irq_context_t *context, continuation_t continuation);
 
-/*
- * ARM data/instruction abort handler
- *
- * This function handles ARM pagefaults including domain faults,
- * data and prefetch aborts and alignment faults.
- */
-
 extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
         arm_irq_context_t *context, word_t data_abt)
 {
     /* Note, fs = 0 for execute fault */
     word_t fs = fault_status & 0xf;
     tcb_t * current = get_current_tcb();
-
-    /* See ARM ARM B3-19 - only deal with prefetch aborts, translation,
-     * domain and permission data aborts. Alignment and external aborts are
-     * not currently recoverable.
-     */
     if (data_abt)
     {
         switch(fs) {
@@ -73,7 +61,6 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
         {
             word_t pid = space->get_pid();
             fault_addr = (addr_t)((word_t)fault_addr + (pid << 25));
-            //printf("pid relocated %d -> %p\n", pid, fault_addr);
         }
     }
 
@@ -101,13 +88,6 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
     if (space->is_user_area(fault_addr))
     {
         arm_domain_t fault_domain;
-        /*
-         * Cases -= Shrd domains:
-         *  Fault since thread no access to domain
-         *  Fault since page not mapped
-         *      - Valid domain
-         *      - No domain
-         */
         pgent_t cpd_entry = get_cpd()[fault_section];
         fault_domain = cpd_entry.get_domain();
 
@@ -211,21 +191,7 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
 handle_fault:
     current->arch.misc.fault.fault_addr = fault_addr;
     current->arch.misc.fault.page_fault_continuation = ASM_CONTINUATION;
-
-    space->handle_pagefault(fault_addr, (addr_t)PC(context->pc),
-                    data_abt ?
-                        (is_valid ? space_t::write : space_t::read)
-                        : space_t::execute,
-                    is_kernel, finish_arm_memory_abort);
-
-    /*
-     * We only return from space->handle_pagefault() on a kernel fault
-     * where fault_addr != user_address. Otherwise, continuation
-     * finish_arm_memory_abort() is called.
-     */
-    /* return value is ignored here since we return anyway */
     (void)fass_sync_address(space, fault_addr);
-
     return;
 }
 

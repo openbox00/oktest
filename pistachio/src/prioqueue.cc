@@ -1,20 +1,13 @@
 /*
  * Description: Scheduler priority queue functions.
  */
-
 #include <l4.h>
-#include <debug.h>
+//#include <debug.h>
 #include <tcb.h>
 #include <schedule.h>
 #include <prioqueue.h>
 #include <queueing.h>
 #include <config.h>
-
-/* Initialise the priority queue data structure. */
-void
-prio_queue_t::init(void)
-{
-}
 
 void
 prio_queue_t::enqueue(tcb_t * tcb)
@@ -47,13 +40,7 @@ prio_queue_t::set_base_priority(tcb_t *tcb, prio_t new_priority)
     /* Recalculate effective priorities. */
     prio_t old_effective_prio = tcb->effective_prio;
     tcb->base_prio = new_priority;
-
-#ifdef CONFIG_SCHEDULE_INHERITANCE
-    prio_t effective_prio = tcb->calc_effective_priority();
-#else
     prio_t effective_prio = new_priority;
-#endif
-
     /* If there is a change, we need to propagate it. */
     if (effective_prio != old_effective_prio) {
         set_effective_priority(tcb, effective_prio);
@@ -63,15 +50,10 @@ prio_queue_t::set_base_priority(tcb_t *tcb, prio_t new_priority)
 void
 prio_queue_t::set_effective_priority(tcb_t * tcb, prio_t new_priority)
 {
-    /* Thread is not on the priority queue. Just update its priority,
-     * with no more to be done. */
     if (!tcb->ready_list.is_queued()) {
         tcb->effective_prio = new_priority;
         return;
     }
-
-    /* Otherwise, dequeue the thread and enqueue it again at its new
-     * priority. */
     dequeue(tcb);
     tcb->effective_prio = new_priority;
     enqueue(tcb);

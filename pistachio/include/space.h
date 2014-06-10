@@ -289,6 +289,7 @@ INLINE void generic_space_t::free_security(void)
     list->remove_space((space_t*)this);
 }
 
+
 INLINE spaceid_t spaceid(word_t id)
 {
     spaceid_t t;

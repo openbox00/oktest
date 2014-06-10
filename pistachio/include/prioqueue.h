@@ -26,35 +26,19 @@ public:
 
     tcb_t * get(prio_t prio);
 
-    /**  Remove a bit in the priority queue's bitmap tree. */
     void remove_sched_bitmap_bit(word_t prio);
 
-    /**  Remove a bit in the priority queue's bitmap tree. */
     void remove_sched_bitmap_bit(word_t level1_index, word_t level2_index);
 
-    /** Head of the queues for each priority. */
     tcb_t * prio_queue[MAX_PRIO + 1];
 
 public:
-
-    /**
-     * A bitmap indicating which array elements of 'prio_bitmap' contain
-     * set bits.
-     */
     word_t index_bitmap;
 
-    /**
-     * A bitmap consisting of one bit per priority. Each bit is set if
-     * there may be a thread of that priority ready to be scheduled.
-     */
     word_t prio_bitmap[BITMAP_WORDS];
 
     friend void mkasmsym(void);
 };
-
-/*
- * Public priority queue implementations.
- */
 
 INLINE void
 prio_queue_t::set(prio_t prio, tcb_t * tcb)

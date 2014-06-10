@@ -14,7 +14,6 @@ void kmem_t::init(void * start, void * end)
     /* initialize members */
     kmem_free_list = NULL;
     free_chunks = 0;
-
     /* do the real work */
     free(start, (word_t)end - (word_t)start);
 }
@@ -96,11 +95,6 @@ void * kmem_t::alloc(word_t size, bool zeroed)
             }
         }
     }
-
     return NULL;
-
 }
-
-//#define ALIGN(x)    (x & mask)
-
 

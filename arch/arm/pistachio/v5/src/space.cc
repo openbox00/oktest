@@ -174,7 +174,6 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
             if (leaf.l2.fault.zero == 0)
                 is_valid = false;
         } else {
-            //WARNING("1MB page in UTCB area");
             return (utcb_t *)0;
         }
     } else {
@@ -262,13 +261,7 @@ void generic_space_t::free_utcb(utcb_t * utcb)
     }
 
     if (!pg || !pg->is_valid(mapspace, pgent_t::size_4k) ) {
-        //enter_kdebug("UTCB mapping not found");
     }
-
-    addr_t page = addr_align(utcb, UTCB_AREA_PAGESIZE);
-
-    /* pass in page aligned address! */
-    mapspace->free_utcb_page(pg, UTCB_AREA_PGSIZE, page);
 }
 
 

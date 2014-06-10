@@ -729,12 +729,8 @@ scheduler_t::delete_tcb(tcb_t * tcb)
 INLINE void
 scheduler_t::mark_thread_as_preempted(tcb_t * tcb)
 {
-    /* Has the thread requested to be signalled if it is preempted? */
-    if (EXPECT_FALSE(tcb->get_preempt_flags().is_signaled())) {
-
         tcb->set_preempted_ip(tcb->get_user_ip());
         tcb->set_user_ip(tcb->get_preempt_callback_ip());
-    }
 }
 
 INLINE NORETURN void
