@@ -1,7 +1,6 @@
 #ifndef __OKL4__TYPES_H__
 #define __OKL4__TYPES_H__
 
-#include <okl4/arch/config.h>
 #include <okl4/kernel.h>
 #include <stddef.h>
 #include <stdint.h>

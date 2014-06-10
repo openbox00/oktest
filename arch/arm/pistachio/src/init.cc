@@ -14,8 +14,6 @@
 #include <arch/init.h>
 #include <kernel/generic/lib.h>
 #include <soc/soc.h>
-#include <soc/arch/soc.h>
-#include <soc/interface.h>
 
 extern "C" void startup_system_mmu();
 

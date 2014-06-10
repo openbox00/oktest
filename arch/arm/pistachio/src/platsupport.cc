@@ -2,7 +2,6 @@
  * Description:   Support functions for ARM platforms.
  */
 #include <l4.h>
-#include <soc/interface.h>
 #include <schedule.h>
 #include <debug.h>
 #include <space.h>

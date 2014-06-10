@@ -1,7 +1,6 @@
 #ifndef __OKL4__ERRNO_H__
 #define __OKL4__ERRNO_H__
 
-#include <okl4/arch/config.h>
 #include <okl4/types.h>
 
 

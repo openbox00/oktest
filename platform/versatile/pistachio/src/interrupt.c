@@ -4,7 +4,6 @@
 
 #include <soc/interface.h>
 #include <soc/soc.h>
-#include <soc/arch/soc.h>
 #include <kernel/arch/special.h>
 #include <interrupt.h>
 #include <reg.h>
