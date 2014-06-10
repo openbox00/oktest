@@ -65,7 +65,6 @@ word_t space_t::space_control_window(word_t ctrl)
         return 1;
     }
     return !r;
-
 }
 
 /**
@@ -96,7 +95,6 @@ bool generic_space_t::init (fpage_t utcb_page,
     bitmap_init(((space_t *)this)->get_client_spaces_bitmap(), CONFIG_MAX_SPACES, 0);
     bitmap_init(((space_t *)this)->get_shared_spaces_bitmap(), CONFIG_MAX_SPACES, 0);
 
-    ASSERT(ALWAYS, get_space_id().get_spaceno() < UTCB_AREA_SECTIONS);
     word_t section = ( UTCB_AREA_START/ARM_SECTION_SIZE +
             (get_space_id().get_spaceno()) );
     /* We have invalid domain, so store the space_t pointer in the
@@ -176,7 +174,7 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
             if (leaf.l2.fault.zero == 0)
                 is_valid = false;
         } else {
-            WARNING("1MB page in UTCB area");
+            //WARNING("1MB page in UTCB area");
             return (utcb_t *)0;
         }
     } else {
@@ -229,9 +227,6 @@ void generic_space_t::free_utcb(utcb_t * utcb)
     /* We have to free the thread's UTCB */
     space_t *space = (space_t *)this;
 
-    /* Can't free UTCBs of kernel space */
-    ASSERT(DEBUG, space);
-
     word_t offset, utcb_num;
 
     offset = (word_t)utcb - UTCB_AREA_START -
@@ -267,7 +262,7 @@ void generic_space_t::free_utcb(utcb_t * utcb)
     }
 
     if (!pg || !pg->is_valid(mapspace, pgent_t::size_4k) ) {
-        enter_kdebug("UTCB mapping not found");
+        //enter_kdebug("UTCB mapping not found");
     }
 
     addr_t page = addr_align(utcb, UTCB_AREA_PAGESIZE);
@@ -428,8 +423,6 @@ void space_t::flush_sharing_spaces(void)
 {
     word_t i;
 
-    ASSERT(DEBUG, this->domain != INVALID_DOMAIN);
-
     if (bitmap_isallclear(this->get_client_spaces_bitmap(), CONFIG_MAX_SPACES)) {
         return;
     }
@@ -463,7 +456,7 @@ void space_t::flush_sharing_on_delete(void)
                 /* Check for valid space id */
                 if (EXPECT_FALSE( source == NULL ))
                 {
-                    panic("found null space in source list");
+                    //panic("found null space in source list");
                 }
 
                 bitmap_clear(source->get_client_spaces_bitmap(), this->get_space_id().get_spaceno());

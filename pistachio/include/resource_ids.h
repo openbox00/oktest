@@ -17,7 +17,6 @@ public:
     }
 
     void set_range(word_t newbase, word_t newsize) {
-        ASSERT(DEBUG, (newbase + newsize) < (1UL << 16));
         base = newbase;
         size = newsize;
     }

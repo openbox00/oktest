@@ -404,7 +404,7 @@ public:
                     l1.raw = 0;
                     l1.fine_table.three = 3;
                     l1.fine_table.base_address = (word_t)virt_to_ram(base) >> 12;
-                    arm_cache::cache_flush_d_ent(base, ARM_L2_TINY_BITS);
+                    //arm_cache::cache_flush_d_ent(base, ARM_L2_TINY_BITS);
                 }
                 else
                 {
@@ -414,7 +414,7 @@ public:
                     l1.raw = 0;
                     l1.coarse_table.one = 1;
                     l1.coarse_table.base_address = (word_t)virt_to_ram(base) >> 10;
-                    arm_cache::cache_flush_d_ent(base, ARM_L2_NORMAL_BITS);
+                    //arm_cache::cache_flush_d_ent(base, ARM_L2_NORMAL_BITS);
                 }
 #ifdef CONFIG_ENABLE_FASS
                 cpd_sync(s);
@@ -515,9 +515,7 @@ public:
                 l1_entry.section.base_address = (word_t) paddr >> 20;
 
                 l1.raw = l1_entry.raw;
-#ifdef CONFIG_ENABLE_FASS
                 cpd_sync(s);
-#endif
             }
 #if defined(CONFIG_ARM_TINY_PAGES)
             else if (pgsize == size_1k)
@@ -710,12 +708,6 @@ public:
 
     void dump_misc (generic_space_t * s, pgsize_e pgsize)
         {
-            printf(" %s",
-                    get_attributes(s, pgsize) == cached ? "WB" :
-                    get_attributes(s, pgsize) == uncached ? "NC" :
-                    get_attributes(s, pgsize) == writethrough ? "WT" :
-                    get_attributes(s, pgsize) == writecombine ? "WC" :
-                    "??");
         }
 };
 

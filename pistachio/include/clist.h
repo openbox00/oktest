@@ -127,7 +127,6 @@ public:
      * Initialize clist
      */
     void init(word_t num_ids) {
-        ASSERT(DEBUG, num_ids > 0);
         max_id = num_ids - 1;
         num_spaces = 0;
         list_lock.init();

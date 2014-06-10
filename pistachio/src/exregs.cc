@@ -14,29 +14,6 @@ CONTINUATION_FUNCTION(finish_exchange_registers);
 
 CONTINUATION_FUNCTION(finish_perform_exreg);
 
-/**
- * Do the actual ExhangeRegisters() syscall.  Separated into a
- * separate function so that it can be invoked on a remote CPU.
- *
- * This is a control function, thus it returns through the
- * continuation argument given.
- *
- * @param source The source TCB - the current tcb on SMT and uniprocessor
- * @param continuation The continuation to activate upon completion
- *
- * The following exreg parameters are stored in the source TCB's
- * misc.exregs structure
- *
- * @param tcb                destination tcb
- * @param control            control parameter (in/out)
- * @param usp                stack pointer (in/out)
- * @param uip                instrunction pointer (in/out)
- * @param uflags             flags (in/out)
- * @param pager              pager (in/out)
- * @param uhandler           user defined handle (in/out)
- * @param copy_src_locked    source tcb of copy registers operation (must be
- * read locked)
- */
 static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
                             word_t *uip, word_t *uflags, word_t *uhandle,
                             tcb_t *source, tcb_t *copy_src_locked)
@@ -76,16 +53,6 @@ static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
         copy_src_locked->unlock_read();
     }
 
-    /*
-     * Both EXREGS_CONTROL_TLS and EXREGS_CONTROL_MRS_TO_REGS can use
-     * MRs to pass in input arguments, but this is checked earlier so no
-     * check need to be done here.
-     *
-     * Note that set_tls() actually returns an error code but we cannot
-     * really handle it.  The reason is ExRegs() is poorly structured,
-     * and at this point the code flow assumes no error can happen.  However,
-     * the error is basically x86 specific.
-     */
     if (ctrl & EXREGS_CONTROL_TLS) {
         (void)tcb->set_tls(&current->get_utcb()->mr[0]);
     }
@@ -104,7 +71,6 @@ static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
     TCB_SYSDATA_EXREGS(source)->exreg_tcb = tcb;
     TCB_SYSDATA_EXREGS(source)->ctrl = ctrl;
 
-    // Check if thread was IPCing
     if (tcb->get_state().is_sending() || tcb->get_state().is_receiving())
     {
         word_t mask;
@@ -147,16 +113,8 @@ static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
     ACTIVATE_CONTINUATION(finish_perform_exreg);
 }
 
-/*
- * Halt the given thread that is currently in a running state.
- *
- * Return if the thread was halted, unless the thread is the current TCB, in
- * which case perform a full schedule, waking up again at 'cont'.
- */
 void halt_thread(tcb_t * tcb, continuation_t cont)
 {
-    ASSERT(ALWAYS, tcb->get_state().is_running());
-
     // Halt a running thread
     get_current_scheduler()->pause(tcb);
     if (tcb->get_state().is_runnable()) {
@@ -178,8 +136,6 @@ void halt_thread(tcb_t * tcb, continuation_t cont)
  */
 void resume_thread(tcb_t * tcb, continuation_t cont)
 {
-    ASSERT(ALWAYS, tcb->get_state().is_halted());
-
     get_current_scheduler()->activate(tcb, thread_state_t::running);
     get_current_scheduler()->schedule(get_current_tcb(), cont, scheduler_t::sched_default);
 }
@@ -283,7 +239,6 @@ CONTINUATION_FUNCTION(finish_perform_exreg)
         }
     }
 
-    // FIXME: SMP which continuation do we use here?
     ACTIVATE_CONTINUATION(finish_exchange_registers);
 }
 
@@ -375,17 +330,6 @@ error_out:
             capid_t::nilthread(), 0, continuation);
 }
 
-/**
- * do the exregs return call with the appropriate parameters
- *
- * @param exreg_tcb The tcb that Exregs was performed on
- * @param new_control The return control parameter
- * @param sp The old sp of the thread
- * @param ip The old ip of the thread
- * @param flags The old flags of the thread
- * @param pager The old pager of the thread
- * @param user_handle The old user handle of the thread
- */
 CONTINUATION_FUNCTION(finish_exchange_registers)
 {
     tcb_t * current = get_current_tcb();

@@ -67,7 +67,7 @@ public:
         cache_flush_d();
         cache_flush_i();
     }
-
+#if 0
     static inline void cache_flush(word_t attr)
     {
         if (attr & CACHE_ATTRIB_MASK_I) /* I-cache */
@@ -79,7 +79,7 @@ public:
             cache_flush_d();
         }
     }
-
+#endif
 #if defined(__GNUC__)
     static inline void cache_flush_d(void)
     {
@@ -250,7 +250,7 @@ public:
         size = ((size + DCACHE_LINE_SIZE-1) + ((word_t)vaddr & (DCACHE_LINE_SIZE-1)))
             & (~(DCACHE_LINE_SIZE-1));
         vaddr = (addr_t)((word_t)vaddr & (~(DCACHE_LINE_SIZE-1)));               // align addresses
-
+#if 0
         if (attr & CACHE_ATTRIB_MASK_D) /* D-cache */
         {
             if ((attr & CACHE_ATTRIB_OP_CLEAN_INVAL) == CACHE_ATTRIB_OP_CLEAN_INVAL)
@@ -271,6 +271,7 @@ public:
         {
             cache_invalidate_ilines(vaddr, size);
         }
+#endif
     }
 
     static inline void tlb_flush(void)

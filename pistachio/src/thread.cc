@@ -18,26 +18,10 @@
 extern "C" CONTINUATION_FUNCTION(initial_to_user);
 void handle_ipc_error (void);
 
-/**
- * Stub invoked after a startup message has been received from the
- * thread's pager.
- *
- * This is a continuation function that completes by activating the
- * initial_to_user continuation function
- */
 CONTINUATION_FUNCTION(thread_startup)
 {
     tcb_t * current = get_current_tcb();
 
-#if 0
-    printf ("Startup %t: ip=%p  sp=%p\n", current,
-            current->get_mr (1), current->get_mr (2));
-#endif
-
-    /** Poke received IP/SP into exception frame (or whatever is used
-     *  by the architecture).  No need to check for valid
-     *  IP/SP. Thread will simply fault if values are not valid.
-     */
     current->set_user_ip((addr_t)current->get_mr(1));
     current->set_user_sp((addr_t)current->get_mr(2));
     current->set_saved_state(thread_state_t::aborted);
@@ -46,27 +30,15 @@ CONTINUATION_FUNCTION(thread_startup)
 }
 
 
-/**
- * Fake that thread is waiting for IPC startup message.
- *
- * @param tcb           thread to wait for startup message
- * @param pager         thread id to receive startup message from
- */
 static void
 fake_wait_for_startup(tcb_t * tcb)
 {
-    /* Setup a dummy IPC receive from our pager, waiting
-     * for them to start us up. */
     tcb->initialise_state(thread_state_t::waiting_forever);
     tcb->set_partner(tcb->get_pager());
     tcb->set_acceptor(acceptor_t::untyped_words());
 
-    // Make sure that unwind will work on waiting thread.
     tcb->set_saved_partner(NULL);
 
-    /* #warning VU: revise fake_wait_for_startup */
-    // Make sure that IPC abort will restore user-level exception
-    // frame instead of trying to return from IPC syscall.
     tcb->set_saved_state (thread_state_t::running);
 }
 
@@ -82,8 +54,6 @@ init_tcb_allocator(void)
     extern word_t num_tcbs;
     extern tcb_t** thread_handle_array;
     word_t i;
-
-    ASSERT(ALWAYS, num_tcbs < END_TCB_FREE_LIST);
 
     /* Initialize free tcb list */
     for (i = 0; i < num_tcbs; i++)
@@ -122,12 +92,8 @@ free_tcb(tcb_t *tcb)
 {
     /* Add the tcb to the head of the free list */
     extern word_t free_tcb_idx;
-#ifdef CONFIG_DEBUG
-    extern word_t num_tcbs;
-#endif
     extern tcb_t** thread_handle_array;
 
-    ASSERT(ALWAYS, tcb->tcb_idx < num_tcbs);
     thread_handle_array[tcb->tcb_idx] = (tcb_t *)free_tcb_idx;
     free_tcb_idx = tcb->tcb_idx;
     /* Free tcb */
@@ -157,8 +123,6 @@ void tcb_t::init(void)
     runtime_flags = 0;
     post_syscall_callback = NULL;
 
-    /* Initialise IPC end-point. */
-    //this->end_point.init(this);
 
     /* Lock initialization */
     this->thread_lock.init();
@@ -184,13 +148,11 @@ void tcb_t::init(void)
 bool SECTION(SEC_INIT)
 tcb_t::create_kernel_thread(utcb_t * new_utcb)
 {
-    //TRACEF("dest=%t\n", TID(dest));
     this->init();
     this->utcb = new_utcb;
     this->utcb_location = (word_t)new_utcb;
     this->page_directory = get_kernel_space()->pgent(0);
 
-    // kernel threads have prio 0 by default
     get_current_scheduler()->set_priority(this, 0);
 
     get_kernel_space()->add_tcb(this);
@@ -199,20 +161,9 @@ tcb_t::create_kernel_thread(utcb_t * new_utcb)
 
 bool tcb_t::activate(void (*startup_func)(), kmem_resource_t *kresource)
 {
-    ASSERT(DEBUG, this);
-    ASSERT(NORMAL, this->space);
-    ASSERT(NORMAL, !this->get_utcb());
-
-    // UTCB location has already been checked during thread creation.
-    // No need to check it again.  Just do an assert.
-
-    //TRACEF("%x (%x)\n", get_utcb_location(), ((1 << get_kip()->utcb_info.alignment) - 1));
-
-    /* allocate UTCB */
     this->utcb = get_space()->allocate_utcb(this, kresource);
     if (!this->utcb)
         return false;
-    //ASSERT(DEBUG, check_utcb_location());
 
 #ifdef CONFIG_PLAT_SURF
     /* Init debug profiling */
@@ -277,10 +228,7 @@ tcb_t::cancel_ipcs(void)
 
     /* Cancel any IPCs of other threads that are sending to us. */
     while (this->end_point.get_send_head()) {
-        // SMT: this is safe to do where
         tcb_t * tcb = this->end_point.get_send_head();
-
-        ASSERT(DEBUG, tcb != this);
 
         /* Unwind the sender's IPC, and notify them of the error. */
         get_current_scheduler()->pause(tcb);
@@ -291,10 +239,7 @@ tcb_t::cancel_ipcs(void)
 
     /* Cancel any IPCs of other threads that are receiving from us. */
     while (this->end_point.get_recv_head()) {
-        // SMT: this is safe to do where
         tcb_t * tcb = this->end_point.get_recv_head();
-
-        ASSERT(DEBUG, tcb != this);
 
         /* Unwind the receiver's IPC, and notify them of the error. */
         get_current_scheduler()->pause(tcb);
@@ -315,9 +260,6 @@ tcb_t::release_mutexes(void)
     bool need_reschedule = false;
     scheduler_t * scheduler = get_current_scheduler();
 
-    /* Ensure that we are not currently on the ready queue. */
-    ASSERT(ALWAYS, !this->ready_list.is_queued());
-
     /* If we are blocked on a mutex, unwind that. */
     if (get_state().is_waiting_mutex()) {
         this->unwind(NULL);
@@ -328,21 +270,14 @@ tcb_t::release_mutexes(void)
     /* Clean up all currently held mutexes. */
     mutex_t * mutex;
 
-    /**
-     *  @todo FIXME: need to grab the scheduler lock to serialise held
-     *  list access - awiggins.
-     */
     while ((mutex = this->mutexes_head) != NULL) {
         tcb_t * new_holder;
 
-        //mutex->mutex_lock.lock();
-        //new_holder = mutex->release();
         /* If the mutex has a new holder, make them runnable. */
         if (new_holder != NULL) {
             scheduler->activate(new_holder, thread_state_t::running);
             need_reschedule = true;
         }
-        //mutex->mutex_lock.unlock();
     }
     return need_reschedule;
 }
@@ -437,11 +372,6 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
     /* Release any syncpoints owned by the thread. */
     (void)this->release_mutexes();
 
-    /*
-     * XXX: For SMT, references to this TCB in other units must also
-     * be cleared. It means 'schedule' fields in
-     * scheduler_t::smt_threads[],
-     */
     if (get_active_schedule() == this) {
         set_active_schedule(get_current_tcb());
     }
@@ -464,17 +394,6 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
 
 }
 
-
-/**
- * Calculate the sender and receiver errorcodes when an IPC operation
- * has been aborted either by exchange_registers.
- *
- * @param reason                reason for abort
- * @param snd                   sender thread
- * @param rcv                   receiver thread
- * @param err_s                 returned sender error code
- * @param err_r                 returned receiver error code
- */
 INLINE void
 calculate_errorcodes( tcb_t * snd, tcb_t * rcv,
                      word_t * err_s, word_t * err_r)
@@ -483,24 +402,13 @@ calculate_errorcodes( tcb_t * snd, tcb_t * rcv,
     *err_r = IPC_RCV_ERROR(ERR_IPC_ABORTED);
 }
 
-/**
- * Unwinds a thread from an ongoing IPC.
- *
- * @pre Thread is currently paused by caller.
- * @pre !get_state().is_runnable().
- *
- * @param partner  Partner TCB of the thread
- */
 void
 tcb_t::unwind(tcb_t *partner)
 {
-    //tcb_t *ipc_partner = partner;
-
     thread_state_t orig_cstate = get_state();
     thread_state_t orig_sstate = get_saved_state();
     tcb_t * orig_cpartner UNUSED = is_partner_valid() ? get_partner() : NULL;
     tcb_t * orig_spartner UNUSED = get_saved_partner();
-
 
     thread_state_t cstate = get_state();
 
@@ -547,12 +455,8 @@ tcb_t::unwind(tcb_t *partner)
     }
 
     if (cstate.is_waiting_mutex()) {
-        //mutex_t * mutex = TCB_SYSDATA_MUTEX(this)->mutex;
-
         get_current_scheduler()->scheduler_lock();
-        //mutex->sync_point.unblock(this);
         get_current_scheduler()->scheduler_unlock();
-        //TCB_SYSDATA_MUTEX(this)->mutex = NULL;
         get_current_scheduler()->update_inactive_state(this,
                 thread_state_t::aborted);
         return;
@@ -570,8 +474,6 @@ CONTINUATION_FUNCTION(handle_ipc_error)
 
     if (saved_state.is_running())
     {
-        // Thread was doing a pagefault IPC.  Restore thread state
-        // prior to IPC operation and return directly to user-level.
         current->restore_state(3);
         current->return_from_user_interruption();
     }
@@ -585,7 +487,6 @@ CONTINUATION_FUNCTION(handle_ipc_error)
     NOTREACHED();
 }
 
-
 /* Assumes thread_state_lock is held by caller */
 void tcb_t::save_state (word_t mrs)
 {
@@ -595,24 +496,12 @@ void tcb_t::save_state (word_t mrs)
 
     TCB_SYSDATA_IPC(this)->saved_notify_mask = get_notify_mask();
     TCB_SYSDATA_IPC(this)->saved_error = get_error_code();
-    ASSERT (NORMAL, get_saved_partner() == NULL);
-    ASSERT (NORMAL, get_saved_state() == thread_state_t::aborted);
-
     saved_partner = partner;
     saved_sent_from = sent_from;
 
     set_saved_state (get_state ());
 }
 
-/**
- *  Restores a thread's message registers, state, IPC partner and notify mask
- *  to the values saved in save_state().
- *
- *  The thread may or may not be runnable at this stage: We may have been
- *  aborted an just woken up, or we may be restoring state after a pagefault
- *  IPC has been completed (and hence we are runnable, because our IPC receiver
- *  just woke us up.)
- */
 void
 tcb_t::restore_state(word_t mrs)
 {
@@ -647,54 +536,7 @@ tcb_t::restore_state(word_t mrs)
 }
 
 CONTINUATION_FUNCTION(finish_kernel_ipc);
-/**
- * Send a pagefault ipc to the current threads pager with the given
- * addr, ip, access
- *
- * This is a control function as the ipc may block.
- *
- * Note that this function will leave all thread state unmodified when the
- * continuation is activated (except obviously for any changes made by other
- * threads in the system, such as mapping the page)
- *
- * @param addr The address of the pagefault
- * @param ip The address of the faulting instruction
- * @param access The type of access which caused the fault
- * @param continuation The continuation to activate upon completion
- */
-#if 0
-void tcb_t::send_pagefault_ipc (addr_t addr, addr_t ip,
-                                space_t::access_e access, continuation_t continuation)
-{
-    if (this->get_pager() == NULL)
-    {
-        ACTIVATE_CONTINUATION(continuation);
-    }
 
-    ASSERT(DEBUG, get_pager() != NULL);
-    sys_data.set_action(tcb_syscall_data_t::action_ipc);
-    save_state(3);
-
-    /* generate pagefault message */
-    msg_tag_t tag;
-    tag.set(2, PAGEFAULT_TAG |
-            ((access == space_t::read)      ? (1 << 2) : 0) |
-            ((access == space_t::write)     ? (1 << 1) : 0) |
-            ((access == space_t::execute)   ? (1 << 0) : 0) |
-            ((access == space_t::readwrite) ? (1 << 2)+(1 << 1) : 0), true, true);
-
-    set_tag(tag);
-    set_mr(1, (word_t)addr);
-    set_mr(2, (word_t)ip);
-    set_notify_mask (0);
-
-
-    //TRACEF("send pagefault IPC (%t)\n", TID(get_pager()));
-    TCB_SYSDATA_IPC(this)->ipc_continuation = continuation;
-
-    do_ipc(get_pager(), get_pager(), finish_kernel_ipc);
-}
-#endif
 /**
  * Set new pager for a thread
  * @param tcb TCB of new pager
@@ -709,10 +551,6 @@ void tcb_t::set_pager(tcb_t *tcb)
     }
 }
 
-/**
- * Set new exception handler for a thread
- * @param tcb   TCB of new exception handler
- */
 void tcb_t::set_exception_handler(tcb_t *tcb)
 {
     if (get_exception_handler()) {
@@ -723,21 +561,8 @@ void tcb_t::set_exception_handler(tcb_t *tcb)
     }
 }
 
-/**
- * Continuation function to finish up a pagefault ipc
- *
- * Simply restores the threads state before activating the next continuation
- *
- * All parameters are in the TCB
- *
- * @param ipc_continuation the continuation to activate upon completion (as passed to send_pagefault_ipc)
- */
 CONTINUATION_FUNCTION(finish_kernel_ipc)
 {
-    /*
-     * explicitly don't care if the IPC failed or not,
-     * we will re-fault if somthing was not handled correctly
-     */
     tcb_t * current = get_current_tcb();
 
     current->restore_state(3);
@@ -756,9 +581,6 @@ CONTINUATION_FUNCTION(finish_sys_thread_control)
     return_thread_control(1, cont);
 }
 
-/**
- * Return from the SYS_THREAD_CONTROL syscall with an error return code.
- */
 static
 CONTINUATION_FUNCTION(abort_sys_thread_control)
 {
@@ -769,18 +591,11 @@ CONTINUATION_FUNCTION(abort_sys_thread_control)
     return_thread_control(0, cont);
 }
 
-/*
- * Called when the user thread is just about to re-enter userspace, but
- * the TCB has requested that a given function be called prior to the
- * thread hitting userspace.
- */
 extern "C" void
 start_post_syscall_callback(void)
 {
     continuation_t cont = ASM_CONTINUATION;
     tcb_t * current = get_current_tcb();
-
-    ASSERT(DEBUG, current->get_post_syscall_callback() != NULL);
     current->get_post_syscall_callback()(cont);
 
     ACTIVATE_CONTINUATION(cont);
@@ -795,15 +610,8 @@ start_post_syscall_callback(void)
 prio_t
 tcb_t::calc_effective_priority()
 {
-    //SMT_ASSERT(ALWAYS, get_current_scheduler()->schedule_lock.is_locked(true));
-
     prio_t max = this->base_prio;
 
-    /*
-     * Determine max priority on incoming IPCs.
-     *
-     * Threads attempting to send to us...
-     */
     tcb_t * send_head = this->end_point.get_send_head();
     if (send_head != NULL && send_head->effective_prio > max) {
         max = send_head->effective_prio;
@@ -814,23 +622,6 @@ tcb_t::calc_effective_priority()
     if (recv_head != NULL && recv_head->effective_prio > max) {
         max = recv_head->effective_prio;
     }
-#if 0
-    /* Determine max prioirty on held mutexes. */
-    mutex_t * mutex_list = this->mutexes_head;
-    mutex_t * first = mutex_list;
-
-    if (mutex_list) {
-        do {
-            //ASSERT(ALWAYS, mutex_list->sync_point.get_donatee() == this);
-            //tcb_t * blocked_head = mutex_list->sync_point.get_blocked_head();
-
-            if (blocked_head != NULL && blocked_head->effective_prio > max) {
-                max = blocked_head->effective_prio;
-            }
-            //mutex_list = mutex_list->held_list.next;
-        } while (mutex_list != first);
-    }
-#endif
     return max;
 }
 #endif
@@ -839,56 +630,21 @@ tcb_t::calc_effective_priority()
 void
 tcb_t::remove_dependency(void)
 {
-#if 0
-    syncpoint_t *syncpoint;
-
-    get_current_scheduler()->schedule_lock.lock();
-    syncpoint = waiting_for;
-    if (syncpoint != NULL) {
-        syncpoint->unblock(this);
-    }
-    get_current_scheduler()->schedule_lock.unlock();
-#endif
 }
 
-/**********************************************************************
- *
- *             global thread management
- *
- **********************************************************************/
-
-/**
- * @brief Setup the thread handlers
- *
- * #pager_tid and #exception_handler_tid must be thread resources.
- *
- * @retval true on success
- * @retval false if either tid is not a thread resource of the id does not
- *               return a valid tcb.
- * @todo XXX - This function is not SMT safe. upgradable reader-writer locks
- * are required to implement this correctly.
- */
 static bool set_thread_handlers(tcb_t *dest_tcb, capid_t pager_tid,
                                 capid_t except_handler_tid)
 {
-    ASSERT(DEBUG, dest_tcb->is_locked());
     tcb_t *tcb = NULL;
 
     if (pager_tid.is_cap_type()) {
         tcb = get_current_clist()->lookup_thread_cap_unlocked(pager_tid);
         if (tcb == NULL) {
-            //TRACEF("Invalid pager thread cap\n");
             return false;
         }
         dest_tcb->set_pager(tcb);
     } else {
-        /*
-         * NOTE: according to the manuals, use of anythread is not
-         * actually supported.  But it worked before the error reporting
-         * was added, so we're letting it work for now.
-         */
         if (!pager_tid.is_nilthread() && !pager_tid.is_anythread()) {
-            //TRACEF("Invalid pager_tid\n");
             return false;
         }
     }
@@ -896,18 +652,11 @@ static bool set_thread_handlers(tcb_t *dest_tcb, capid_t pager_tid,
     if (except_handler_tid.is_cap_type()) {
         tcb = get_current_clist()->lookup_thread_cap_unlocked(except_handler_tid);
         if (tcb == NULL) {
-            //TRACEF("Invalid exception handler thread cap\n");
             return false;
         }
         dest_tcb->set_exception_handler(tcb);
     } else {
-        /*
-         * NOTE: according to the manuals, use of anythread is not
-         * actually supported.  But it worked before the error reporting
-         * was added, so we're letting it work for now.
-         */
         if (!except_handler_tid.is_nilthread() && !except_handler_tid.is_anythread()) {
-            //TRACEF("Invalid except_handler_tid\n");
             return false;
         }
     }
@@ -926,7 +675,6 @@ SYS_THREAD_CONTROL (capid_t dest_tid, spaceid_t space_id,
 	LOCK_PRIVILEGED_SYSCALL();
     tcb_t *dest_tcb;
     continuation_t continuation = ASM_CONTINUATION;
-    NULL_CHECK(continuation);
     kmem_resource_t *kresource;
 
     /* Get current TCB, and set continuation data to 'thread control' mode. */
@@ -941,7 +689,6 @@ SYS_THREAD_CONTROL (capid_t dest_tid, spaceid_t space_id,
     if (EXPECT_FALSE(dest_tid.is_myself() || pager_tid.is_myself() ||
         except_handler_tid.is_myself()))
     {
-        //TRACEF("thread_control with myself as argument\n");
         current->set_error_code (EINVALID_THREAD);
         goto error_out;
     }
@@ -1070,8 +817,6 @@ modify_try_again:
 
         dest_tcb->set_utcb_location(utcb_address);
         bool UNUSED locked = dest_tcb->try_lock_write();
-        ASSERT(DEBUG, locked);
-
         /* Insert TCB into capability list */
         if (EXPECT_FALSE(!get_current_clist()->add_thread_cap(dest_tid, dest_tcb))) {
             current->set_error_code(EINVALID_THREAD);
@@ -1129,14 +874,12 @@ modify_try_again:
 
 free_tcb_error_out:
     /* thread activation failed: clean up TCB */
-
     if (get_current_clist()->remove_thread_cap(dest_tid)) {
         /* We have exclusive access to dest_tcb now */
         space_t *space = dest_tcb->get_space();
 
         space->remove_tcb(dest_tcb);
     } else {
-        panic("dest_tcb: %p deleted while write_lock held\n", dest_tcb);
     }
 
 free_cap_error_out:

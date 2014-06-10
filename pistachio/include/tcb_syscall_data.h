@@ -100,7 +100,7 @@ public:
         addr_t          fault_address;
 #endif
         word_t          op_index;   // current operation index
-        cache_control_t ctrl;       // cache_control control word
+        //cache_control_t ctrl;       // cache_control control word
         word_t          op_offset;  // current operation offset
         spaceid_t       space_id;   // target space
 

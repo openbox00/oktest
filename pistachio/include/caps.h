@@ -125,9 +125,7 @@ public:
         this->raw = cap.raw;
     }
 
-#if !defined(CONFIG_DEBUG)
 private:
-#endif
     /**
      * Check if we can ipc this cap
      */
@@ -144,18 +142,6 @@ private:
      * Check if this is an ipc CAP
      */
     bool is_ipc_cap(void) { return (this->x.type == (word_t)cap_type_ipc); };
-
-#if defined(CONFIG_DEBUG)
-    const char* cap_type(void) {
-        switch (this->x.type) {
-            case 0: return "inv";
-            case 1: return "tcb";
-            case 2: return "ipc";
-            default: return "  ?";
-        }
-    }
-#endif
-
 
     friend class clist_t;
     friend void mkasmsym();

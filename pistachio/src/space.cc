@@ -30,33 +30,13 @@ void SECTION(SEC_INIT) init_spaceids(word_t max_spaceids,
                                      kmem_resource_t *kresource)
 {
     void * new_table;
-    ASSERT(ALWAYS, max_spaceids >= 1);
 
     new_table = kresource->alloc(kmem_group_spaceids,
                                  sizeof(space_t*) * max_spaceids, true);
-    ASSERT(ALWAYS, new_table);
 
     space_lookup.init(new_table, max_spaceids);
-    //get_kernel_space()->set_space_id(spaceid(~0UL));
 }
 
-/**
- * Handle a pagefault as appropriate.
- * For a user fault this means a pagefault IPC, for a kernel fault this
- * means syncing the kernel space or mapping the dummy UTCB.
- *
- * This is a control function for a user fault, so the continuation will be
- * activated instead of returning. However for a kernel fault this is not a
- * control function, so the continuation will be ignored and a normal return
- * will be performed.
- *
- * @param addr The address of the fault
- * @param ip The address of the instructin that caused the fault
- * @param access The type of fault (RWX)
- * @param kernel Whether the fault came from kernel or user mode
- * @param continuation The continuation to activate upon completion
- * for a user fault, ignored for a kernel fault
- */
 void
 generic_space_t::handle_pagefault(addr_t addr, addr_t ip, access_e access,
                                   bool kernel, continuation_t continuation)
@@ -64,10 +44,7 @@ generic_space_t::handle_pagefault(addr_t addr, addr_t ip, access_e access,
     tcb_t * current = get_current_tcb();
 
     if (EXPECT_TRUE(!kernel)) {
-        // if we have a user fault we may have a stale partner
         current->set_partner(NULL);
-
-        //current->send_pagefault_ipc (addr, ip, access, continuation);
     }
     else {
         /* kernel fault */
@@ -90,16 +67,9 @@ generic_space_t::handle_pagefault(addr_t addr, addr_t ip, access_e access,
             }
         }
         else {
-            enter_kdebug("kpf");
         }
     }
 
-    enter_kdebug("unhandled pagefault");
-/*
-    if (current == get_idle_tcb()) {
-        panic("Unhandled pagefault in idle thread.");
-    }
-*/
     get_current_scheduler()->
         deactivate_sched(current, thread_state_t::halted,
                          current, (continuation_t)(-1),
@@ -176,18 +146,6 @@ SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id,
             goto error_out;
         }
 
-        /*
-         * Space does not exist.  Create it.
-         */
-
-        /* @todo FIXME: The is_user_area should probably be a static
-         * function, for now though we call it on a space that we know
-         * exists, e.g: kernel space. This should really be refactored
-         * though, so that control word is handled before the space is
-         * init, then it makes sense for is_user_area to be a class
-         * method - ???.
-         */
-
         bool utcb_area_invalid;
 
 #ifdef NO_UTCB_RELOCATE    /* UTCB is kernel allocated */
@@ -209,7 +167,6 @@ SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id,
         space = allocate_space(kresource, space_id, clist);
         if (EXPECT_FALSE(space == NULL)) {
             /* Assert error code is set by allocate_space() */
-            ASSERT(DEBUG, current->get_error_code() != EOK);
             goto error_out;
         }
 
@@ -218,7 +175,6 @@ SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id,
             free_space(space);
 
             /* Assert error code is set */
-            ASSERT(DEBUG, current->get_error_code() != EOK);
             goto error_out;
         }
 
@@ -280,7 +236,6 @@ SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id,
     }
 
     /* Assert error code is not set */
-    ASSERT(DEBUG, current->get_error_code() == EOK);
     UNLOCK_PRIVILEGED_SYSCALL();
     return_space_control (1, 0, continuation);
 
@@ -309,7 +264,6 @@ space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clis
     space->set_kmem_resource(NULL);
     space->enqueue_spaces();
 
-    //space->set_space_id(space_id);
     get_space_list()->add_space(space_id, space);
 
     space->init_security(clist);
@@ -322,11 +276,8 @@ space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clis
  */
 void free_space(space_t * space)
 {
-    ASSERT(DEBUG, space);
-
     kmem_resource_t *kresource = get_current_kmem_resource();
 
-    //TRACEF("Freeing %d\n", space->get_space_id());
     space->dequeue_spaces();
     space->free_page_directory(kresource);
     space->free_security();
@@ -353,7 +304,7 @@ void generic_space_t::free_utcb_area_memory()
     /* ARMv5 frees its UTCBs as the threads are freed in free_thread_resources
      * This is feasible for ARM as it needs a UTCB bitmap anyway
      */
-#if !defined(ARCH_ARM) || (CONFIG_ARM_VER >= 6)
+#if 0
     /* Unmap and free the UTCBs.. walk ptab, to see if any pages are mapped */
     fpage_t utcb_area = get_utcb_area();
     pgent_t::pgsize_e size = pgent_t::size_max;
@@ -387,17 +338,13 @@ void generic_space_t::free_utcb_page (pgent_t * pg, pgent_t::pgsize_e pgsize, ad
     addr_t kaddr;
     word_t pagesize = 1UL << page_shift(pgsize);
 
-    /* make sure vaddr is page aligned */
-    ASSERT(DEBUG, !((word_t)vaddr & (pagesize-1)));
 
     /* flush the page on architectures with a virtual cache
      * so that we don't corrupt the freelist
      */
-    cache_t::invalidate_virtual_alias(vaddr, pagesize);
+    //cache_t::invalidate_virtual_alias(vaddr, pagesize);
 
     kaddr = ram_to_virt(pg->address(this, pgsize));
-
-    //TRACEF("Freeing Kernel memory %p %p\n", vaddr, kaddr);
 
     /* flush from TLB */
     flush_tlbent_local(get_current_space(), vaddr, page_shift(pgsize));
@@ -424,8 +371,6 @@ bool SECTION(SEC_INIT)
     word_t pgsize, pagesize = 0;
     fpage_t fpg;
 
-    //TRACEF("Map region %p -> %p %lx bytes\n", vaddr, paddr, size);
-    /* page align all addresses and size */
     size = (word_t)addr_align_up((addr_t)(((word_t)vaddr) + size), page_size(pgent_t::size_min)) - vaddr;
     vaddr = (word_t)addr_align((addr_t)vaddr, page_size(pgent_t::size_min));
     paddr = (word_t)addr_align((addr_t)paddr, page_size(pgent_t::size_min));
@@ -435,7 +380,6 @@ bool SECTION(SEC_INIT)
         /* find pagesize to use for this portion of the mapping */
         for (pgsize = BITS_WORD; pgsize; pgsize--) {
             pagesize = 1UL << pgsize;
-            // Ignore sizes not supported by the kernel
             if (!(pagesize & supported_sizes)) {
                 continue;
             }
@@ -445,7 +389,6 @@ bool SECTION(SEC_INIT)
                 continue;
             }
 
-            // phys and virt addrs must be aligned
             if (paddr & (pagesize-1)) {
                 continue;
             }
@@ -461,7 +404,6 @@ bool SECTION(SEC_INIT)
         phys_desc.set_base(paddr);
         phys_desc.set_attributes(attr);
 
-        //TRACEF("Map page %p -> %p %lx bytes\n", vaddr, paddr, page_size(pgsize));
         get_current_tcb()->sys_data.set_action
             (tcb_syscall_data_t::action_map_control);
         if (!space->map_fpage(phys_desc, fpg, kresource))
@@ -478,7 +420,6 @@ bool SECTION(SEC_INIT)
 
 clist_t * generic_space_t::lookup_clist(clistid_t clist_id)
 {
-    // Check privilege
     if (EXPECT_FALSE(!clist_range.is_valid(clist_id.get_clistno()))) {
         return NULL;
     } else {
@@ -488,7 +429,6 @@ clist_t * generic_space_t::lookup_clist(clistid_t clist_id)
 
 space_t * generic_space_t::lookup_space(spaceid_t space_id)
 {
-    // Check privilege
     if (EXPECT_FALSE(!space_range.is_valid(space_id.get_spaceno()))) {
         return NULL;
     } else {

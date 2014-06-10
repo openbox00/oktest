@@ -53,8 +53,6 @@ void asm_switch_to(continuation_t cont, word_t dest, word_t utcb_location);
 
 void switch_from(tcb_t * current, continuation_t continuation)
 {
-    ASSERT(ALWAYS, current->ready_list.next == NULL);
-
     /* Save any resources held by this thread. */
     if (EXPECT_FALSE(current->resource_bits)) {
         current->resources.save(current);
@@ -66,7 +64,6 @@ void switch_from(tcb_t * current, continuation_t continuation)
 
 void switch_to(tcb_t * dest, tcb_t * schedule)
 {
-    ASSERT(ALWAYS, dest->ready_list.next == NULL);
     space_t *dest_space = dest->get_space();
 
     /* Update the global schedule variable. */

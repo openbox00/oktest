@@ -24,16 +24,10 @@ public:
 public:
     void add_object(word_t id, addr_t obj)
         {
-            ASSERT(DEBUG, valid_id(id));
-            ASSERT(DEBUG, id_table[id] == NULL);
-
             id_table[id] = obj;
         }
     void remove_object(word_t id)
         {
-            ASSERT(DEBUG, valid_id(id));
-            ASSERT(DEBUG, id_table[id] != NULL);
-
             id_table[id] = NULL;
         }
 protected:

@@ -549,7 +549,6 @@ scheduler_t::get_context_bitmask(tcb_t * tcb)
 INLINE void
 scheduler_t::set_timeslice_length(tcb_t * tcb, word_t timeslice)
 {
-    ASSERT(DEBUG, tcb);
     tcb->current_timeslice = tcb->timeslice_length = timeslice;
 }
 
@@ -582,8 +581,6 @@ INLINE NORETURN void
 scheduler_t::donate(tcb_t * dest_tcb, tcb_t * current,
                     continuation_t continuation)
 {
-    ASSERT(ALWAYS, current->get_state().is_runnable());
-
     schedule_lock.lock();
 
     /* Ensure that the destination is runnable and can be grabbed. */
@@ -674,36 +671,23 @@ scheduler_t::deactivate_activate_sched(tcb_t * deactivated_tcb,
 INLINE void
 scheduler_t::update_active_state(tcb_t * tcb, thread_state_t new_state)
 {
-    ASSERT(DEBUG, tcb->get_state().is_runnable());
-    ASSERT(DEBUG, new_state.is_runnable());
-
     tcb->set_state(new_state);
 }
 
 INLINE void
 scheduler_t::update_inactive_state(tcb_t * tcb, thread_state_t new_state)
 {
-    ASSERT(DEBUG, !tcb->get_state().is_runnable());
-    ASSERT(DEBUG, !new_state.is_runnable());
-
     tcb->set_state(new_state);
 }
 
 INLINE void
 scheduler_t::set_priority(tcb_t * tcb, prio_t prio)
 {
-    ASSERT(DEBUG, prio >= 0 && prio <= MAX_PRIO);
     schedule_lock.lock();
 
     /* Update the base priority of the thread. */
     prio_queue.set_base_priority(tcb, prio);
 
-    /* Propagate the priority changes. */
-#if 0
-    if (tcb->get_waiting_for() != NULL) {
-        tcb->get_waiting_for()->refresh(tcb);
-    }
-#endif
     schedule_lock.unlock();
 }
 
@@ -729,18 +713,11 @@ scheduler_t::get_current_time(void)
 INLINE void
 scheduler_t::set_context_bitmask(tcb_t * tcb, word_t x)
 {
-    ASSERT(DEBUG, tcb);
-#if defined(CONFIG_MUNITS) && defined(CONFIG_CONTEXT_BITMASKS)
-    tcb->context_bitmask = x;
-#endif
 }
 
 INLINE void
 scheduler_t::delete_tcb(tcb_t * tcb)
 {
-    ASSERT(ALWAYS, tcb->is_grabbed_by_me());
-    ASSERT(ALWAYS, !tcb->ready_list.is_queued());
-
     tcb->set_state(thread_state_t::aborted);
     tcb->base_prio = 0;
     tcb->effective_prio = 0;
@@ -770,9 +747,6 @@ scheduler_t::context_switch(tcb_t * current, tcb_t * dest,
      * the system. Perform a full schedule (with no funky optimisations)
      * next time we have to schedule a new thread.
      */
-    ASSERT(ALWAYS, dest->is_grabbed_by_me());
-    ASSERT(ALWAYS, current != get_idle_tcb());
-
     current->set_state(new_current_state);
     dest->set_state(new_dest_state);
     schedule_lock.lock();

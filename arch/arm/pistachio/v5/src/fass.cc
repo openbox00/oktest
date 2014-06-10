@@ -30,12 +30,6 @@ void arm_fass_t::clean_all(word_t flush)
     arm_cache::tlb_flush();
 }
 
-/* Choose a domain to replace - try select a clean domain, otherwise replace one.
- * Should consider using a more sophisticated selection if
- * it will buy anything (for example, consider the number of CPD slots used by
- * the domains). Also, should consider moving this to user-level.
- */
-
 int arm_fass_t::replacement_domain(void)
 {
     word_t domain;
@@ -68,7 +62,6 @@ arm_domain_t arm_fass_t::domain_recycle(space_t *space)
     space_t *old_space;
 
     target = replacement_domain();
-    ASSERT(DEBUG, target != current_domain);
 
     old_space = domain_space[target];
 

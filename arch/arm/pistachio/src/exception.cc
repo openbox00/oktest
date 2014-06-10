@@ -58,10 +58,6 @@ extern "C" NORETURN void undefined_exception(arm_irq_context_t *context)
 extern "C" NORETURN void reset_exception(arm_irq_context_t *context)
 {
     continuation_t continuation = ASM_CONTINUATION;
-
-    kdebug_entry_t kdebug_entry = kdebug_entries.kdebug_entry;
-    if (EXPECT_FALSE(kdebug_entry != NULL)) {
-    }
     halt_user_thread(continuation);
 }
 
@@ -123,9 +119,6 @@ send_exception_ipc( word_t exc_num, word_t exc_code,
                 instr = *(u16_t *)(PC(context->pc)-2);
                 else
                 instr = *(word_t *)(PC(context->pc)-4);
-                printf ("EXCEPTION_IPC_SYSCALL: (%p) IP = %p (%p)\n",
-                    current, PC(context->pc),
-                    (void*)instr));
 #else
 #endif
         // Create the message tag.
@@ -167,11 +160,6 @@ CONTINUATION_FUNCTION(finish_exception_ipc)
 
     // Alter the user context if necessary.
     if (EXPECT_TRUE(tag.is_error())) {
-        kdebug_entry_t kdebug_entry = kdebug_entries.kdebug_entry;
-        if (EXPECT_FALSE(kdebug_entry != NULL)) {
-        }
-        else {
-        }
         halt_user_thread(current->arch.misc.exception.exception_ipc_continuation);
     }
 

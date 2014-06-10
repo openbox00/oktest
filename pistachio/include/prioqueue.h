@@ -59,15 +59,12 @@ public:
 INLINE void
 prio_queue_t::set(prio_t prio, tcb_t * tcb)
 {
-    ASSERT(DEBUG, tcb);
-    ASSERT(NORMAL, prio >= 0 && prio <= MAX_PRIO);
     this->prio_queue[prio] = tcb;
 }
 
 INLINE tcb_t *
 prio_queue_t::get(prio_t prio)
 {
-    ASSERT(NORMAL, prio >= 0 && prio <= MAX_PRIO);
     return prio_queue[prio];
 }
 
