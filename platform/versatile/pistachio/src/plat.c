@@ -21,6 +21,7 @@ addr_t versatile_uart0_vbase;
   I/O Virtual to Physical mapping
 ---------------------------------------------------------------------------*/
 #define MAP_ENTRY(base,n) { base + n * ARM_SECTION_SIZE, base##_PHYS + n * ARM_SECTION_SIZE}
+#define SOC_CACHE_DEVICE 0x0
 
 #define SIZE_4K 4096
 
