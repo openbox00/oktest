@@ -15,7 +15,6 @@
 #include <syncpoint.h>
 #include <endpoint.h>
 #include <utcb.h>
-#include <mp.h>
 #include <smallalloc.h>
 #include <read_write_lock.h>
 
@@ -972,18 +971,13 @@ INLINE utcb_t * get_idle_utcb(cpu_context_t context)
 
 INLINE tcb_t * get_idle_tcb()
 {
-    return get_idle_tcb(get_current_context());
+    return get_idle_tcb(0);
 }
 
 INLINE utcb_t * get_idle_utcb()
 {
-    return get_idle_utcb(get_current_context());
+    return get_idle_utcb(0);
 }
-
-/*
- * Thread locking.
- */
-
 
 /*
  * include glue header file
@@ -1010,11 +1004,7 @@ INLINE bool tcb_t::is_local_unit()
 
 INLINE bool tcb_t::is_local_domain()
 {
-#ifdef CONFIG_MDOMAINS
-    return (cpu_context.scheduler_domain == get_current_context().scheduler_domain);
-#else
     return true;
-#endif
 }
 
 /**

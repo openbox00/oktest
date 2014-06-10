@@ -1,10 +1,8 @@
-
 /*
  * Description:   Iplementation of ExchangeRegisters()
  */
 #include <l4.h>
 #include <arch/syscalls.h>
-#include <smp.h>
 #include <schedule.h>
 
 #include <arch/tcb.h>

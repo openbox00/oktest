@@ -7,7 +7,6 @@
 #include <schedule.h>
 #include <space.h>
 #include <arch/memory.h>
-#include <intctrl.h>
 #include <interrupt.h>
 #include <config.h>
 #include <arch/hwspace.h>

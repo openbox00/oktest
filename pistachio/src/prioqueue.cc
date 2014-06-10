@@ -8,7 +8,6 @@
 #include <schedule.h>
 #include <prioqueue.h>
 #include <queueing.h>
-#include <smp.h>
 #include <config.h>
 
 /* Initialise the priority queue data structure. */

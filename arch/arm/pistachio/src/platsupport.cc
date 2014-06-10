@@ -1,8 +1,6 @@
 /*
  * Description:   Support functions for ARM platforms.
  */
-
-#include <stdarg.h>     /* for va_list, ... comes with gcc */
 #include <l4.h>
 #include <soc/interface.h>
 #include <schedule.h>

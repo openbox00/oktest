@@ -11,7 +11,6 @@
 #include <schedule.h>
 #include <space.h>
 #include <syscalls.h>
-#include <smp.h>
 #include <linear_ptab.h>
 #include <kernel/generic/lib.h>
 #include <ref_inline.h>

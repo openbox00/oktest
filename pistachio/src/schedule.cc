@@ -79,7 +79,8 @@ scheduler_t::schedule(tcb_t * current, continuation_t continuation,
     /* Switch away from the current thread, enqueuing if necessary. */
     switch_from(current, continuation);
     current->release();
-    if (current_runnable && current != get_idle_tcb()) {
+
+	if (current_runnable && current != get_idle_tcb()) {
         enqueue(current);
     }
 

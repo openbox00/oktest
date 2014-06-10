@@ -95,11 +95,11 @@ generic_space_t::handle_pagefault(addr_t addr, addr_t ip, access_e access,
     }
 
     enter_kdebug("unhandled pagefault");
-
+/*
     if (current == get_idle_tcb()) {
         panic("Unhandled pagefault in idle thread.");
     }
-
+*/
     get_current_scheduler()->
         deactivate_sched(current, thread_state_t::halted,
                          current, (continuation_t)(-1),
