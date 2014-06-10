@@ -307,7 +307,6 @@ scheduler_t::context_switch(tcb_t * current, tcb_t * dest,
     schedule_lock.lock();
     scheduling_invariants_violated = true;
     switch_from(current, cont);
-    current->release();
     if (current->get_state().is_runnable()) {
         enqueue(current);
     }

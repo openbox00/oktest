@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 #include <stdarg.h>
-#include <sys/types.h>
-#include <sys/types.h>
 
 
 #define __UNGET_SIZE 10

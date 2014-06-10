@@ -44,7 +44,6 @@ scheduler_t::schedule(tcb_t * current, continuation_t continuation,
     }
     (void)next->grab();
     switch_from(current, continuation);
-    current->release();
 
 	if (current_runnable && current != get_idle_tcb()) {
         enqueue(current);

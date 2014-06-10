@@ -485,10 +485,6 @@ bool space_t::is_client_space(space_t *space)
 
 void space_t::set_vspace(word_t vspace)
 {
-    if ((vspace == 0) || get_current_space()->space_range.is_valid(vspace)) {
-        this->bits.vspace = vspace;
-    } else {
         this->bits.vspace = 0;
-    }
 }
 

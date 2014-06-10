@@ -185,10 +185,6 @@ public:
 private:
     kmem_resource_t *   kmem_resource;
 public:
-    resource_ids_t      mutex_range;
-    resource_ids_t      space_range;
-    resource_ids_t      clist_range;
-
 #ifdef CONFIG_SPACE_NAMES
     char                debug_name[MAX_DEBUG_NAME_LENGTH];
 #endif

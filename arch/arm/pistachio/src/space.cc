@@ -38,7 +38,6 @@ bool space_t::add_mapping(addr_t vaddr, addr_t paddr, pgent_t::pgsize_e size,
         if ( pgsize == size )
             break;
 
-        // Create subtree
         if ( !pg->is_valid( this, pgsize ) ) {
             if (!pg->make_subtree( this, pgsize, kernel, kresource))
                 return false;

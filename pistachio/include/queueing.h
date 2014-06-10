@@ -79,5 +79,4 @@ ringlist_t<T>::is_queued()
 {
     return next != NULL;
 }
-
 #endif /* !__QUEUEING_H__ */

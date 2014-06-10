@@ -22,8 +22,6 @@ class tcb_t;
 
 namespace cap_reference_t
 {
-    //DECLARE_READ_WRITE_LOCK(cap_reference_lock);
-
     void add_reference(cap_t *master_cap, cap_t *cap);
     void remove_reference(cap_t *master_cap, cap_t *cap);
     void remove_reference(cap_t *master_cap, ref_t *ref);
@@ -37,6 +35,7 @@ namespace cap_reference_t
  * Internal kernel revocable object
  * The next pointer must map to the cap_t structure
  */
+
 class ref_t
 {
 private:
@@ -45,39 +44,20 @@ private:
 
 public:
     ref_t *next;
-
-    /**
-     * Initialize this reference
-     */
     void init(void) {
         object = NULL;
         next = NULL;
     }
-    /**
-     * Get TCB pointed to by this reference
-     */
     tcb_t* get_tcb(void) {
         return (tcb_t*)object;
     }
-    /**
-     * Set TCB pointed to by this reference
-     */
     void set_referenced(tcb_t* obj);
-    /**
-     * Clear TCB reference
-     */
     void remove_referenced(tcb_t* obj);
 };
 
 class cap_t
 {
 private:
-    /* IMPORTANT: 
-     * cap_t size MUST be aligned to 2 power N
-     * in order to optimize access in fastpath,
-     * use padding if it is not! Please also 
-     * change LOG2_SIZEOF_CAP_T  when adding new members.
-     */
     union {
         struct {
             BITFIELD2(word_t,

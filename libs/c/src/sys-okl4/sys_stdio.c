@@ -3,9 +3,7 @@
 #include <string.h>
 #include <okl4/env.h>
 
-#if defined SERIAL_DRIVER
 #include <serial/serial.h>
-#endif /* SERIAL_DRIVER */
 #include "../stream.h"
 
 extern struct __file __stdin;

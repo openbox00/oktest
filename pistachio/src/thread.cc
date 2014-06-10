@@ -128,7 +128,7 @@ void tcb_t::init(void)
 
     /* initialize scheduling */
     get_current_scheduler()->init_tcb(this);
-    enqueue_present();
+    //enqueue_present();
 
     init_stack();
 
@@ -194,15 +194,11 @@ tcb_t::cancel_ipcs(void)
         } else if (((word_t)partner < SPECIAL_RAW_LIMIT) && this->get_space()) {
             this->unwind(partner);
         }
-        /* do nothing for partner == anythread / kernel / uninitialized threads */
     }
 
     /* Cancel any IPCs of other threads that are sending to us. */
     while (this->end_point.get_send_head()) {
         tcb_t * tcb = this->end_point.get_send_head();
-
-        /* Unwind the sender's IPC, and notify them of the error. */
-        //get_current_scheduler()->pause(tcb);
         tcb->unwind(this);
         tcb->notify(handle_ipc_error);
         get_current_scheduler()->activate(tcb, thread_state_t::running);
@@ -211,9 +207,6 @@ tcb_t::cancel_ipcs(void)
     /* Cancel any IPCs of other threads that are receiving from us. */
     while (this->end_point.get_recv_head()) {
         tcb_t * tcb = this->end_point.get_recv_head();
-
-        /* Unwind the receiver's IPC, and notify them of the error. */
-        //get_current_scheduler()->pause(tcb);
         tcb->unwind(this);
         tcb->notify(handle_ipc_error);
         get_current_scheduler()->activate(tcb, thread_state_t::running);
@@ -333,8 +326,6 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
 {
     scheduler_t *scheduler = get_current_scheduler();
 
-    //scheduler->pause(this);
-
     this->cancel_ipcs();
 
     /* Unwind ourselves thread into an aborted state. */
@@ -348,14 +339,13 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
     }
     scheduler->delete_tcb(this);
 
-    // free any used resources
     resources.free(this, kresource);
 
     set_pager(NULL);
     set_exception_handler(NULL);
 
     this->set_space(NULL);
-    dequeue_present();
+    //dequeue_present();
 
 #if defined(CONFIG_THREAD_NAMES)
     debug_name[0] = '\0';

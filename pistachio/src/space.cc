@@ -81,8 +81,6 @@ bool SECTION(SEC_INIT)
             if (!(pagesize & supported_sizes)) {
                 continue;
             }
-
-            // Must be less that the size we're trying to map
             if (size < pagesize) {
                 continue;
             }
@@ -118,19 +116,11 @@ bool SECTION(SEC_INIT)
 
 clist_t * generic_space_t::lookup_clist(clistid_t clist_id)
 {
-    if (EXPECT_FALSE(!clist_range.is_valid(clist_id.get_clistno()))) {
-        return NULL;
-    } else {
         return get_clist_list()->lookup_clist(clist_id);
-    }
 }
 
 space_t * generic_space_t::lookup_space(spaceid_t space_id)
 {
-    if (EXPECT_FALSE(!space_range.is_valid(space_id.get_spaceno()))) {
-        return NULL;
-    } else {
         return get_space_list()->lookup_space(space_id);
-    }
 }
 

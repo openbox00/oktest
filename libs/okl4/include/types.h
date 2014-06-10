@@ -5,15 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined(OKL4_KERNEL_MICRO)
 #include <l4/types.h>
 #include <l4/utcb.h>
-#elif defined(OKL4_KERNEL_NANO)
-#include <nano/nano.h>
-#else
-#error "Unknown kernel configuration."
-#endif
-
 /**
  * Define INLINE macro.
  */

@@ -254,9 +254,6 @@ public:
     /** List of mutexes currently held by this thread. */
     mutex_t *           mutexes_head;
 
-#if defined(CONFIG_DEBUG)
-    ringlist_t<tcb_t>   present_list;
-#endif
 
     /**
      * The priority of the thread, before taking into account interactions with
@@ -265,37 +262,13 @@ public:
      */
     prio_t              base_prio;
 
-    /**
-     * The priority of the thread, after taking into account priority
-     * inheritance from other threads. This is the priority that should be used
-     * when determining which thread should be running at a particular point in
-     * time.
-     */
     prio_t              effective_prio;
-
-#if (defined CONFIG_MDOMAINS)
-    ringlist_t<tcb_t>   xcpu_list;
-    word_t              xcpu_status;
-
-#endif
 
 public:
 
     /* scheduling */
     word_t              timeslice_length;
     word_t              current_timeslice;
-
-#if defined(CONFIG_MUNITS) && defined(CONFIG_CONTEXT_BITMASKS)
-    /* Only allow the thread to run on certain hardware units. */
-    word_t              context_bitmask;
-#endif
-
-#if defined(CONFIG_MUNITS)
-    /* Set to a positivbe value 'true' if this thread is reserved to be scheduled /
-     * grabbed by another hardware unit. If so, the thread should not be
-     * enqueued again. */
-    okl4_atomic_word_t       reserved;
-#endif
 
 public:
     tcb_t *             saved_partner;
@@ -308,11 +281,6 @@ public:
     capid_t             saved_sent_from;
 public:
     tcb_syscall_data_t  sys_data;
-
-#if (defined CONFIG_MDOMAINS) || (defined CONFIG_MUNITS)
-    /* Mailbox walking continuation */
-    continuation_t      xcpu_continuation;
-#endif
 
     word_t              tcb_idx;
     cap_t *             master_cap;
@@ -344,27 +312,12 @@ union stack_t {
 
 #define KTCB_SIZE   ((sizeof(tcb_t) + (KTCB_ALIGN-1)) & (~(KTCB_ALIGN-1)))
 
-/*
- * Thread lookup
- */
-#if defined(CONFIG_DEBUG)
-/**
- * Translates a pointer within a TCB into a valid TCB pointer,
- * or NULL if the pointer is not valid.
- *
- * @param ptr  Pointer to somewhere in the TCB.
- * @returns    Pointer to the TCB.
- */
-tcb_t * get_tcb(void * ptr);
-#endif
-
 tcb_t* lookup_tcb_by_handle_locked(word_t threadhandle);
 tcb_t* acquire_read_lock_tcb(tcb_t *tcb, tcb_t *tcb_locked = NULL);
 
 INLINE tcb_t* acquire_read_lock_current(tcb_t *current, tcb_t *tcb_locked = NULL)
 {
     if (current == tcb_locked) {
-        //current->lock_read_already_held();
     } else if (EXPECT_FALSE(!current->try_lock_read())) {
         return NULL;
     }
@@ -385,59 +338,8 @@ void init_tcb_allocator(void);
  *
  **********************************************************************/
 
-/**
- * Mark that the given thread should be considered as no longer running.
- *
- * This function will return, and the kernel will continue to execute on
- * its current stack, but will do so without any concept of
- * 'get_current_thread()'.
- *
- * This function allows a thread to be released by the kernel, more work
- * performed, and then a new thread switched to using the 'switch_to'
- * call. On uniprocessor systems, this is generally unnecessary, but on
- * SMP/SMT systems this is required by the scheduler.
- *
- * The given continuation function will be were the current thread
- * next wakes up.
- *
- * @param current
- *     The currently running TCB that will be switched away from.
- *
- * @param continuation
- *     The continuation that 'current' should wake up at when
- *     it is next scheduled.
- */
 void switch_from(tcb_t * current, continuation_t continuation);
 
-/**
- * Perform a context switch to another thread. The kernel must have
- * already called 'switch_from' to disown the currently running thread.
- * Only the scheduler should need to use these functions.
- *
- * This is the most primitive control function. The continuation
- * argument is the point where the current thread will execute upon
- * being resumed.
- *
- * Also passed in is a thread whose schedule we will be running
- * under. If the system is using schedule-inheritance, this means
- * that 'dest' may run using another thread's schedule. This will
- * occur when another thread (with higher priority) is blocked
- * waiting for 'dest' to finish. If 'schedule' is the same as
- * 'dest', then the destination thread runs on its own priority.
- *
- * At the conclusion of this function, execution will pass to the
- * destination's continuation, stored in 'cont'.
- *
- * @param dest
- *     The tcb to switch to.
- *
- * @param schedule
- *     The tcb whose schedule we will start to use. May be NULL to
- *     indicate no change of schedule will take place.
- *
- * @param continuation
- *     The continuation to activate when the thread is resumed.
- */
 void switch_to(tcb_t * dest, tcb_t * schedule) NORETURN;
 
 /**********************************************************************
@@ -474,15 +376,11 @@ INLINE void tcb_t::set_utcb(utcb_t *new_utcb)
  *                  Access functions
  *
  **********************************************************************/
+
 INLINE bool tcb_t::grab()
 {
     return true;
 }
-
-INLINE void tcb_t::release()
-{
-}
-
 INLINE bool tcb_t::is_grabbed_by_me()
 {
     return true;
@@ -515,11 +413,7 @@ INLINE void tcb_t::set_partner(tcb_t *tcb)
 
 INLINE bool tcb_t::is_partner_valid()
 {
-#ifdef CONFIG_DEBUG
-    return (word_t)this->partner != INVALID_RAW;
-#else
     return true;
-#endif
 }
 
 INLINE tcb_t * tcb_t::get_partner()
@@ -538,13 +432,6 @@ tcb_t::set_waiting_for(syncpoint_t * syncpoint)
 {
     this->waiting_for = syncpoint;
 }
-#if 0
-INLINE syncpoint_t *
-tcb_t::get_waiting_for(void)
-{
-    //return this->waiting_for;
-}
-#endif
 /**
  * Get TCB of a thread's pager
  * @return      TCB of pager
@@ -599,32 +486,6 @@ INLINE word_t tcb_t::get_error_code(void)
     return get_utcb()->error_code;
 }
 
-/**
- * Get a thread's preemption flags
- * @return      preemption flags
- */
-/*
-INLINE preempt_flags_t tcb_t::get_preempt_flags (void)
-{
-    preempt_flags_t flags;
-    flags.raw = get_utcb()->preempt_flags;
-    return flags;
-}
-*/
-/**
- * Set a thread's preemption flags
- * @param flags new preemption flags
- */
-/*
-INLINE void tcb_t::set_preempt_flags (preempt_flags_t flags)
-{
-    get_utcb()->preempt_flags = flags.raw;
-}
-*/
-/**
- * Get a thread's coprocessor flags
- * @return      coprocessor flags
- */
 INLINE u8_t tcb_t::get_cop_flags (void)
 {
     return get_utcb()->cop_flags;
@@ -681,11 +542,6 @@ INLINE void tcb_t::set_notify_mask(const word_t mask)
     get_utcb()->notify_mask = mask;
 }
 
-/**
- * Get message tag
- * @returns message tag
- * The message tag will be read from message register 0
- */
 INLINE msg_tag_t tcb_t::get_tag (void)
 {
     msg_tag_t tag;
@@ -693,11 +549,6 @@ INLINE msg_tag_t tcb_t::get_tag (void)
     return tag;
 }
 
-/**
- * Set the message tag
- * @param tag   new message tag
- * The message tag will be stored in message register 0
- */
 INLINE void tcb_t::set_tag (msg_tag_t tag)
 {
     set_mr(0, tag.raw);
@@ -719,44 +570,6 @@ INLINE spaceid_t tcb_t::get_sender_space()
     return get_utcb()->sender_space;
 }
 
-/**
- * enqueue a tcb into the present list
- * the present list primarily exists for debugging reasons, since task
- * manipulations now happen on a per-thread basis
- */
-#ifdef CONFIG_DEBUG
-extern tcb_t * global_present_list;
-extern spinlock_t present_list_lock;
-#endif
-
-INLINE void tcb_t::enqueue_present()
-{
-#ifdef CONFIG_DEBUG
-    present_list_lock.lock();
-    ENQUEUE_LIST_TAIL(tcb_t, global_present_list, this, present_list);
-    present_list_lock.unlock();
-#endif
-}
-
-INLINE void tcb_t::dequeue_present()
-{
-#ifdef CONFIG_DEBUG
-    present_list_lock.lock();
-    DEQUEUE_LIST(tcb_t, global_present_list, this, present_list);
-    present_list_lock.unlock();
-#endif
-}
-
-INLINE void
-tcb_t::reserve(void)
-{
-}
-
-INLINE void
-tcb_t::unreserve(void)
-{
-}
-
 INLINE bool
 tcb_t::is_reserved(void)
 {
@@ -767,21 +580,6 @@ INLINE arch_ktcb_t *tcb_t::get_arch()
 {
     return &this->arch;
 }
-
-/* Migrating domains is meaningless in not MP systems */
-#ifdef CONFIG_MDOMAINS
-INLINE bool tcb_t::migrate_to_domain(cpu_context_t context)
-{
-    // update the directory cache on migration between processors
-    if (space) {
-        this->page_directory = space->pgent(0, context.domain);
-    }
-
-#error FIXME: Add stuff to migrate to a new domain here
-
-    return false;
-}
-#endif
 
 INLINE void init_idle_tcb()
 {
@@ -844,12 +642,6 @@ INLINE bool tcb_t::is_local_domain()
     return true;
 }
 
-/**
- * Check UTCB location of thread is valid.  It is assumed that the
- * space of the thread is properly initialised.
- *
- * @return true if UTCB location is valid, false otherwise
- */
 INLINE bool tcb_t::check_utcb_location ()
 {
     return get_space()->check_utcb_location (get_utcb_location ());
@@ -864,33 +656,19 @@ INLINE bool tcb_t::check_utcb_location ()
 INLINE void
 tcb_t::set_user_access(continuation_t cont)
 {
-    /* Ensure that we don't already user access enabled. It would be
-     * ideal if we could ensure that nobody else is using this field at
-     * the present time (for instance, visible kernel preemption), but
-     * unfortunately this field is left with stale data in it after a
-     * (timer-based) preemption continuation takes place.  */
     this->runtime_flags |= (word_t)(1 << TCB_RF_USER_ACCESS);
     this->preemption_continuation = cont;
-
-#if defined(ARCH_ENABLE_USER_ACCESS)
-    ARCH_ENABLE_USER_ACCESS;
-#endif
-
-    okl4_atomic_compiler_barrier();
+    //okl4_atomic_compiler_barrier();
 }
 
 INLINE void
 tcb_t::clear_user_access(void)
 {
-    okl4_atomic_compiler_barrier();
-
-#if defined(ARCH_DISABLE_USER_ACCESS)
-    ARCH_DISABLE_USER_ACCESS;
-#endif
+    //okl4_atomic_compiler_barrier();
     this->runtime_flags &= ~((word_t)(1 << TCB_RF_USER_ACCESS));
     this->preemption_continuation = NULL;
 
-    okl4_atomic_compiler_barrier();
+    //okl4_atomic_compiler_barrier();
 }
 
 INLINE bool
@@ -914,22 +692,7 @@ tcb_t::user_access_continuation(void)
 void handle_ipc_error(void);
 
 extern "C" void arm_return_from_notify0(void);
-/**
- * register a function to be run next time thread is scheduled
- *
- * This function may not be called on a currently executing thread
- *
- * The function must be a continuation function. The thread must not
- * have a current continuation function set unless the function being
- * set is handle_ipc_error.
- *
- * Arguments to the function must be stored in the TCB
- *
- * This is not a control function - ie it will return normally, not by
- * activating the given continuation
- *
- * @param func notify procedure to invoke upon thread execution
- */
+
 INLINE void
 tcb_t::notify(continuation_t func)
 {
@@ -967,10 +730,6 @@ tcb_t::get_post_syscall_callback(void)
     return post_syscall_callback;
 }
 
-/**
- * adds a thread to the space
- * @param tcb pointer to thread control block
- */
 
 INLINE void generic_space_t::add_tcb(tcb_t * tcb)
 {
@@ -982,11 +741,6 @@ INLINE void generic_space_t::add_tcb(tcb_t * tcb)
     (void)sync_kernel_space(tcb);
 }
 
-/**
- * removes a thread from a space
- * @param tcb_t thread control block
- * @return true if it was the last thread
- */
 INLINE void generic_space_t::remove_tcb(tcb_t * tcb)
 {
     thread_count--;

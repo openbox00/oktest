@@ -28,7 +28,7 @@
         IMPORT  reset_exception
         IMPORT  send_exception_ipc
         //IMPORT  sys_cache_control
-        IMPORT  sys_exchange_registers
+        //IMPORT  sys_exchange_registers
         //IMPORT  sys_ipc
         //IMPORT  sys_map_control
         //IMPORT  sys_schedule
@@ -1293,7 +1293,7 @@ LABEL(arm_syscall_vectors)
         //DCDU    sys_ipc
         //DCDU    sys_thread_switch
         DCDU    vector_sys_thread_control_exargs
-        DCDU    vector_sys_exchange_registers_exargs
+        //DCDU    vector_sys_exchange_registers_exargs
         //DCDU    vector_sys_schedule_exargs
         //DCDU    sys_map_control
         //DCDU    vector_sys_space_control_exargs
@@ -1335,7 +1335,7 @@ $vname  EQU     $name_exargs - __vector_addr + 0xffff0000
 
         SYS_EXARGS(sys_thread_control,-r7, 4)       /* save one extra word for RVCT 8-byte alignment requirements */
         //SYS_EXARGS(sys_space_control,-r5, 2)        /* save one extra word for RVCT 8-byte alignment requirements */
-        SYS_EXARGS(sys_exchange_registers,-r7, 4)
+        //SYS_EXARGS(sys_exchange_registers,-r7, 4)
         //SYS_EXARGS(sys_schedule,-r5, 2)
 
 /*

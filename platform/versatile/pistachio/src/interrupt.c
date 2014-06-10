@@ -36,8 +36,6 @@ void
 soc_mask_irq(word_t irq)
 {
     volatile vic_t  *vic = (vic_t *)versatile_vic_vbase;
-    SOC_ASSERT(DEBUG, irq < (word_t) IRQS);
-
     if (irq <= VERSATILE_SIC_IRQ) {
         vic->irq_enable_clear = (1UL << irq);
     } else {
@@ -50,8 +48,6 @@ void
 soc_unmask_irq(word_t irq)
 {
     volatile vic_t  *vic = (vic_t *)versatile_vic_vbase;
-    SOC_ASSERT(DEBUG, irq < (word_t) IRQS);
-
     if (irq <= VERSATILE_SIC_IRQ) {
         vic->irq_enable |= (1UL << irq);
     } else {

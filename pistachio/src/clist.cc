@@ -45,7 +45,6 @@ tcb_t* clist_t::lookup_thread_cap_locked(capid_t tid, bool write, tcb_t *tcb_loc
     if (EXPECT_FALSE(tid.get_type() != TYPE_CAP)) {
         return NULL;
     }
-
     /* Check cap-id range, 0 is a valid cap-id */
     if (EXPECT_FALSE(tid.get_index() > max_id))
     {
@@ -53,8 +52,6 @@ tcb_t* clist_t::lookup_thread_cap_locked(capid_t tid, bool write, tcb_t *tcb_loc
     }
 
 again:
-    okl4_atomic_barrier_smp();
-    /* Thread ID appears valid. Get the entry. */
     cap_t entry = this->entries[tid.get_index()];
 
     if (!entry.is_thread_cap()) {
@@ -64,14 +61,11 @@ again:
 
     if (EXPECT_FALSE(write)) {
         if (EXPECT_FALSE(!tcb->try_lock_write())) {
-            okl4_atomic_barrier_smp();
             goto again;
         }
     } else {
         if (tcb == tcb_locked) {
-            //tcb->lock_read_already_held();
         } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
-            okl4_atomic_barrier_smp();
             goto again;
         }
     }
@@ -118,7 +112,6 @@ tcb_t* clist_t::lookup_ipc_cap_locked(capid_t tid, tcb_t *tcb_locked)
     }
 
 again:
-    //okl4_atomic_barrier_smp();
     /* Thread ID appears valid. Get the entry. */
     cap_t entry = this->entries[tid.get_index()];
 
@@ -128,9 +121,7 @@ again:
     tcb = entry.get_tcb();
 
     if (tcb == tcb_locked) {
-        //tcb->lock_read_already_held();
     } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
-        //okl4_atomic_barrier_smp();
         goto again;
     }
     return tcb;
@@ -208,8 +199,6 @@ bool clist_t::remove_ipc_cap(capid_t tid)
 {
     list_lock.lock();
 again:
-    //okl4_atomic_barrier_smp();
-    /* Remove the entry. */
     cap_t entry = this->entries[tid.get_index()];
 
     if (EXPECT_FALSE(!entry.is_ipc_cap())) {
@@ -221,7 +210,6 @@ again:
         okl4_atomic_barrier_smp();
         goto again;
     }
-    //tcb->unlock_write();
 
     list_lock.unlock();
     return true;
