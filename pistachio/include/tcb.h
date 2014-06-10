@@ -10,7 +10,6 @@
 #include <space.h>
 #include <resources.h>
 #include <capid.h>
-#include <preempt.h>
 #include <tcb_syscall_data.h>
 #include <syncpoint.h>
 #include <endpoint.h>
