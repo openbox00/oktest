@@ -7,7 +7,6 @@
 
 #include <debug.h>
 #include <cpu/syscon.h>
-#include <cache.h>
 #include <kernel/arch/asm.h>
 
 /* Write-through mode on arm926 */

@@ -3,7 +3,6 @@
 
 #include <l4.h>
 #include <kernel/generic/lib.h>
-#include <cache.h>
 #include <arch/ktcb.h>
 
 #if defined(CONFIG_DEBUG)

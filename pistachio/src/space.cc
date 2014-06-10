@@ -12,7 +12,6 @@
 #include <syscalls.h>
 #include <threadstate.h>
 #include <arch/syscalls.h>
-#include <cache.h>
 #include <kernel/arch/special.h>
 #include <kernel/bitmap.h>
 #include <linear_ptab.h>
