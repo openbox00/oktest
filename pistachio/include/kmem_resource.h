@@ -22,10 +22,8 @@ typedef enum {
     kmem_group_mutex,
     kmem_group_space,
     kmem_group_tcb,
-#if defined(ARCH_ARM) && (ARCH_VER == 5)
     kmem_group_l0_allocator,
     kmem_group_l1_allocator,
-#endif
     /* end of small_alloc pools, below are kmem pools */
     kmem_group_clist,
     kmem_group_clistids,

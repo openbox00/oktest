@@ -1020,8 +1020,8 @@ class KengeEnvironment:
                                   exports = exports, duplicate = duplicate)
 
         #raise UserError("Unable to find package: %s" % package)
-        print UserError("Unable to find package: %s" % package)
-        return (None, None, None)
+        #print UserError("Unable to find package: %s" % package)
+        #return (None, None, None)
 
     def LayoutVirtual(self, apps):
         """Layout a list of objects in memory.  Virtual, physical and

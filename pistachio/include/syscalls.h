@@ -10,7 +10,6 @@
 #include <soc/soc.h>
 
 class spaceid_t;
-//class mutexid_t;
 class clistid_t;
 
 class tc_resources_t;
@@ -28,14 +27,6 @@ extern "C" {
  */
 SYS_IPC (capid_t to_tid, capid_t from_tid);
 
-
-/**
- * thread switch system call
- * @param dest_tid thread id to switch to
- */
-SYS_THREAD_SWITCH (capid_t dest_tid);
-
-
 /**
  * thread control privileged system call
  * @param dest_tid thread id of the destination thread
@@ -46,6 +37,7 @@ SYS_THREAD_SWITCH (capid_t dest_tid);
  * @param thread_resources architecture specific resource bits
  * @param utcb_location location of the UTCB
  */
+
 SYS_THREAD_CONTROL (capid_t dest_tid, spaceid_t space_id,
                     capid_t scheduler_tid, capid_t pager_tid,
                     capid_t except_handler_tid,
@@ -61,34 +53,11 @@ SYS_THREAD_CONTROL (capid_t dest_tid, spaceid_t space_id,
  * @param uflags user flags
  * @param uhandle user defined handle
  */
+
 SYS_EXCHANGE_REGISTERS (capid_t dest_tid, word_t control,
                         word_t usp, word_t uip, word_t uflags,
                         word_t uhandle);
 
-
-/**
- * schedule system call
- * (note: the glue layer has to provide a return_schedule macro to load
- * the return values into the appropriate registers)
- * @param dest_tid thread id of the destination thread
- * @param ts_len timeslice length
- * @param hw_thread_bitmask allow user thread to run on set of hw threads
- * @param processor_control processor number the thread migrates to
- * @param prio new priority of the thread
- * @param flags schedule system calls control flags.
- */
-SYS_SCHEDULE (capid_t dest_tid, word_t ts_len,
-        word_t hw_thread_bitmsk, word_t processor_control, word_t prio,
-        word_t flags);
-
-
-/**
- * map control system call
- * @param space_id target address space specifier
- * @param control map control word specifying the number of
- *  mapitems to be acted on
- */
-SYS_MAP_CONTROL (spaceid_t space_id, word_t control);
 
 
 /**
@@ -101,15 +70,7 @@ SYS_MAP_CONTROL (spaceid_t space_id, word_t control);
  * @param utcb_area user thread control block area fpage
  * @param space_resources address spaces resources
  */
-SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id,
-                   fpage_t utcb_area, word_t space_resources);
-
-/**
- * cache control system call
- * @param space_id target address space specifier
- * @param control control word specifing the options to cache_control
- */
-SYS_CACHE_CONTROL (spaceid_t space_id, word_t control);
+SYS_SPACE_CONTROL (spaceid_t space_id, word_t control, clistid_t clist_id, fpage_t utcb_area, word_t space_resources);
 
 /**
  * platform control system call
@@ -120,58 +81,7 @@ SYS_CACHE_CONTROL (spaceid_t space_id, word_t control);
  * @param param2
  * @param param3
  */
-SYS_PLATFORM_CONTROL (plat_control_t control, word_t param1,
-                      word_t param2, word_t param3);
-
-/**
- * space switch system call
- * @param tid thread to modify
- * @param space_id the space to move the thread into
- * @param utcb_location the new utcb address of the thread
- */
-SYS_SPACE_SWITCH(capid_t tid, spaceid_t space_id, word_t utcb_location);
-
-/**
- * Mutex system call.
- *
- * @param mutex_id The identifier of the mutex to modify.
- * @param flags The flags identifying the type of mutex operation to perform.
- * @param state_p The virtual address of the hybrid mutex word.
- */
-//SYS_MUTEX(mutexid_t mutex_id, word_t flags, word_t * state_p);
-
-/**
- * Mutex control privileged system call
- *
- * @param mutex_id Target mutex identifier.
- * @param control Control flags for system call.
- */
-//SYS_MUTEX_CONTROL(mutexid_t mutex_id, word_t control);
-
-/**
- * interrupt control system call
- * @param tid thread to modify
- * @param space_id the space to move the thread into
- * @param utcb_location the new utcb address of the thread
- */
-SYS_INTERRUPT_CONTROL(capid_t tid, irq_control_t control);
-
-/**
- * capability control system call
- * @param clist capbility list to operate on
- * @param control control flags for cap_control
- * @param mrs arguments dependant on control flags
- */
-SYS_CAP_CONTROL(clistid_t clist, cap_control_t control);
-
-/**
- * memory copy system call
- *
- * @param space_id the space to move the thread into
- * @param utcb_location the new utcb address of the thread
- */
-SYS_MEMORY_COPY(capid_t remote, word_t local, word_t size, 
-                word_t direction);
+SYS_PLATFORM_CONTROL (plat_control_t control, word_t param1,word_t param2, word_t param3);
 
 } /* extern "C" */
 
