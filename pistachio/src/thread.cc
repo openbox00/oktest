@@ -202,7 +202,7 @@ tcb_t::cancel_ipcs(void)
         tcb_t * tcb = this->end_point.get_send_head();
 
         /* Unwind the sender's IPC, and notify them of the error. */
-        get_current_scheduler()->pause(tcb);
+        //get_current_scheduler()->pause(tcb);
         tcb->unwind(this);
         tcb->notify(handle_ipc_error);
         get_current_scheduler()->activate(tcb, thread_state_t::running);
@@ -213,7 +213,7 @@ tcb_t::cancel_ipcs(void)
         tcb_t * tcb = this->end_point.get_recv_head();
 
         /* Unwind the receiver's IPC, and notify them of the error. */
-        get_current_scheduler()->pause(tcb);
+        //get_current_scheduler()->pause(tcb);
         tcb->unwind(this);
         tcb->notify(handle_ipc_error);
         get_current_scheduler()->activate(tcb, thread_state_t::running);
@@ -333,7 +333,7 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
 {
     scheduler_t *scheduler = get_current_scheduler();
 
-    scheduler->pause(this);
+    //scheduler->pause(this);
 
     this->cancel_ipcs();
 
@@ -426,8 +426,8 @@ tcb_t::unwind(tcb_t *partner)
     }
 
     if (cstate.is_waiting_mutex()) {
-        get_current_scheduler()->scheduler_lock();
-        get_current_scheduler()->scheduler_unlock();
+       // get_current_scheduler()->scheduler_lock();
+        //get_current_scheduler()->scheduler_unlock();
         get_current_scheduler()->update_inactive_state(this,
                 thread_state_t::aborted);
         return;

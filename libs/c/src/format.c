@@ -5,7 +5,6 @@
 #include "format.h"
 
 #include "stream.h"
-#include "threadsafety.h"
 
 /*
  * All of these functions do not lock the I/O stream.  They all end up calling
@@ -20,34 +19,12 @@ static inline char *
 umaxtostr(char *buf, uintmax_t u, int base, const char *digits)
 {
     unsigned long u2;
-
-    /* generate the digits in reverse order */
-#if 0     /*lint -e30 */
-    /*
-     * Uintmax_t arithmetic may be very slow.  Use it only until the
-     * residual fits in an unsigned long. 
-     */
-    while (u > ULONG_MAX) {
-        *--buf = digits[u % base];
-        u /= base;
-    }
-#endif
     for (u2 = u; u2 != 0UL;) {
         *--buf = digits[u2 % base];
         u2 /= base;
     }
     return buf;
 }
-
-/*
- * This macro is *really* nasty.
- * 
- * It isn't an inline function because it relies on variables declared in the
- * surrounding scope. Specifically: stream_or_memory -> Indicates if we are
- * going to a file, or memory r -> The output counter n -> max size output ->
- * output buffer (if going to memory) stream -> output stream (if going to
- * file) 
- */
 
 #define WRITE_CHAR(x) {           \
  if (n != -1 && r == n) {         \
@@ -62,13 +39,6 @@ umaxtostr(char *buf, uintmax_t u, int base, const char *digits)
  r++;                             \
 }                                 \
 
-
-/*
- * Print one formatted field.  The length of s is len; any '\0's in s are
- * IGNORED.  The field may have an optional prefix ('+', ' ', '-', '0x', or
- * '0X', packed into an unsigned int), and is padded appropriately to the
- * specified width.  If width < 0, the field is left-justified. 
- */
 static inline int
 fprintf1(char *output, FILE *stream, bool stream_or_memory, size_t r, size_t n,
          const char *s, int len, unsigned int prefix,
@@ -79,7 +49,7 @@ fprintf1(char *output, FILE *stream, bool stream_or_memory, size_t r, size_t n,
     bool overflowed = *over;    /* Current start of overflow flag */
 
     if (stream != NULL)
-        //lock_stream(stream);
+
     if (width - prec - prefixlen > 0) {
         for (i = 0; i < width - prec - prefixlen; i++) {
             WRITE_CHAR(' ');    /* left-padding (if any) */
@@ -107,7 +77,7 @@ fprintf1(char *output, FILE *stream, bool stream_or_memory, size_t r, size_t n,
     *over = overflowed;         /* Set overflow flag in the caller */
 
     if (stream != NULL)
-        //unlock_stream(stream);
+
     return r - y;               /* We return the number of chars added */
 }
 
@@ -127,7 +97,7 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
 
     r = 0;
     if (stream != NULL)
-        //lock_stream(stream);
+
     for (p = fmt; *p != '\0'; p++) {
         if (*p != '%') {
           putc:
@@ -344,7 +314,6 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                  * twice 
                  */
                 if (point) {
-                    // len = min(prec, strlen(s))
                     for (len = 0; len < prec; len++)
                         if (s[len] == '\0')
                             break;
@@ -435,11 +404,9 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
         *output++ = '\0';
 
     if (stream != NULL)
-        //unlock_stream(stream);
 
     /* If line buffered, flush the stream */
     if (stream != NULL && stream->buffering_mode == _IOLBF) {
-        fflush(stream);
     }
 
     return r;

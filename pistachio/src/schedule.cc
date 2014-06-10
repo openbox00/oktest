@@ -22,7 +22,6 @@ void
 scheduler_t::schedule(tcb_t * current, continuation_t continuation,
                       flags_t flags)
 {
-    //scheduling_invariants_violated = false;
     prio_t max_prio = get_highest_priority();
     bool current_runnable = current->get_state().is_runnable() && !current->is_reserved();
     if (current_runnable) {

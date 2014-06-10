@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/types.h>
 
-#include "threadsafety.h"
 
 #define __UNGET_SIZE 10
 

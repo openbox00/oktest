@@ -72,7 +72,6 @@ serial_write(const void *data, long int position, size_t count, void *handle)
         if (cr_data == NULL) {
             return 0;
         }
-        memcpy(cr_data, data, count);
         cr_data[cr_count - 2] = '\r';
         cr_data[cr_count - 1] = '\n';
         cr_added = 1;
@@ -171,7 +170,6 @@ serial_init(void)
     if (device == NULL) {
         return (serial_init_result = 1);
     }
-    memset(device, '\0', SERIAL_DRIVER.size);
 
     /* Initialise the device state with resources, device instance, tx and rx
      * stream interfaces. */

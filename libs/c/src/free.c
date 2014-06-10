@@ -3,9 +3,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-/*
- * free: put block ap in free list 
- */
 void
 free(void *ap)
 {
@@ -24,10 +21,6 @@ free(void *ap)
         if (p >= p->s.ptr && (bp > p || bp < p->s.ptr))
             break;              /* freed block at start or end of arena */
 
-#ifdef CONFIG_MALLOC_INSTRUMENT
-    __malloc_instrumented_allocated -= bp->s.size;
-#endif
-
     if (bp + bp->s.size == p->s.ptr) {  /* join to upper nbr */
         bp->s.size += p->s.ptr->s.size;
         bp->s.ptr = p->s.ptr->s.ptr;
@@ -43,13 +36,4 @@ free(void *ap)
     }
 
     freep = p;
-
-#ifdef CONFIG_MALLOC_DEBUG_INTERNAL
-    if (__malloc_check() != 0) {
-        printf("free %p\n", ap);
-        __malloc_dump();
-        assert(__malloc_check() == 0);
-    }
-#endif
-    //MALLOC_UNLOCK;
 }

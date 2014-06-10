@@ -44,7 +44,7 @@ __sys_entry(void *env)
 
 
     result = main(argc, argv);
-    exit(result);
+    //exit(result);
 }
 
 void
@@ -53,7 +53,7 @@ __sys_thread_entry(void)
     int result;
 
     result = main(0, NULL);
-    exit(result);
+    //exit(result);
 }
 
 #define FORCED_SYMBOL(x) \

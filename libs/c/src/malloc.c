@@ -9,18 +9,8 @@
 #include <stdlib.h>
 #include <string.h>             /* For memcpy */
 
-#include "threadsafety.h"
 Header __malloc_base;             /* empty list to get started */
 
-
-#ifdef CONFIG_MALLOC_INSTRUMENT
-size_t __malloc_instrumented_allocated;
-#endif
-
-
-/*
- * malloc: general-purpose storage allocator 
- */
 void *
 malloc(size_t nbytes)
 {
@@ -46,10 +36,6 @@ malloc(size_t nbytes)
                 p->s.size = nunits;
             }
             freep = prevp;
-
-#ifdef CONFIG_MALLOC_INSTRUMENT
-            __malloc_instrumented_allocated += nunits;
-#endif
             return (void *)(p + 1);
         }
         if (p == freep) {       /* wrapped around free list */

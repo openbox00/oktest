@@ -1,8 +1,6 @@
 #ifndef _LIBS_MALLOC_H_
 #define _LIBS_MALLOC_H_
 
-#include "threadsafety.h"
-
 extern Header __malloc_base;                /* empty list to get started */
 extern Header *_kr_malloc_freep;            /* start of free list */
 

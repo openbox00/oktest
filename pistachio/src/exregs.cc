@@ -31,7 +31,7 @@ static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
     }
     TCB_SYSDATA_EXREGS(source)->new_control = 0;
 
-    get_current_scheduler()->pause(tcb);
+    //get_current_scheduler()->pause(tcb);
     //tcb->unlock_read();
 
     if (ctrl & EXREGS_CONTROL_SP)
@@ -99,7 +99,7 @@ static void perform_exregs (tcb_t *tcb, word_t *control, word_t *usp,
         }
     }
 
-    get_current_scheduler()->unpause(tcb);
+    //get_current_scheduler()->unpause(tcb);
     ACTIVATE_CONTINUATION(finish_perform_exreg);
 }
 

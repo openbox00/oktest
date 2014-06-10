@@ -6,8 +6,6 @@
 #if defined SERIAL_DRIVER
 #include <serial/serial.h>
 #endif /* SERIAL_DRIVER */
-
-#include "../threadsafety.h"
 #include "../stream.h"
 
 extern struct __file __stdin;

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../threadsafety.h"
 #include "../stream.h"
 
 extern FILE *sys_tmpfile(void);

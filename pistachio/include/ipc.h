@@ -6,20 +6,9 @@
 
 class tcb_t;
 
-/**
- * Message protocol tags
- */
-#if defined(L4_32BIT)
 #define IRQ_TAG                        0xfffffff0UL
 #define PAGEFAULT_TAG                  0xffffffe0UL
 #define PREEMPTION_TAG                 0xffffffd0UL
-#elif defined(L4_64BIT)
-#define IRQ_TAG                        0xfffffffffffffff0UL
-#define PAGEFAULT_TAG                  0xffffffffffffffe0UL
-#define PREEMPTION_TAG                 0xffffffffffffffd0UL
-#else
-#error Unkwown wordsize
-#endif
 
 /**
  * Error codes
@@ -184,6 +173,7 @@ public:
         } x;
     };
 };
+
 
 void ipc(tcb_t *to_tcb, tcb_t *from_tcb, word_t wait_type) NORETURN;
 

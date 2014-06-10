@@ -1,15 +1,7 @@
 #include <stdio.h>
 #include "format.h"
-#ifdef __USE_POSIX
-#include <pthread.h>
-#endif
-
 #include <string.h>
 
-/*
- * All of these functions do not lock the I/O stream.  They all end up calling
- * format which handles the locking. 
- */
 
 int
 printf(const char *format, ...)

@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "../k_r_malloc.h"
-#include "../threadsafety.h"
 
 #define NALLOC 100
 uintptr_t __malloc_bss;

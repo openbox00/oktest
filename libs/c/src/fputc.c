@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "stream.h"
-#include "threadsafety.h"
 
 int
 fputc(int c, FILE *stream)
@@ -27,7 +26,7 @@ fputc(int c, FILE *stream)
         stream->current_pos++;
         if ((stream->buffering_mode == _IOLBF && ch == '\n') ||
             (stream->buffer_end - stream->buffer >= stream->buffer_size - 1)) {
-            fflush(stream);
+            //fflush(stream);
         }
 
     } else {
