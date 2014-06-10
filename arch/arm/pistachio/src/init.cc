@@ -15,20 +15,18 @@
 #include <kernel/generic/lib.h>
 #include <soc/soc.h>
 
-extern "C" void startup_system_mmu();
+CONTINUATION_FUNCTION(idle_thread);
 
-#if !defined(CONFIG_ARM_THREAD_REGISTERS)
+CONTINUATION_FUNCTION(idle_thread)
+{
+    while (1) {
+    }
+}
+
+extern word_t pre_tcb_init;
+
 /* UTCB reference page. This needs to be revisited */
 ALIGNED(UTCB_AREA_PAGESIZE) char arm_utcb_page[UTCB_AREA_PAGESIZE] UNIT("utcb");
-#endif
-
-#if defined(CONFIG_TRUSTZONE)
-
-/* System Mode: Are we running in secure or non-seceure mode */
-bool arm_secure_mode;
-
-#endif
-
 
 extern "C" void SECTION(".init") init_arm_globals(word_t *physbase)
 {
@@ -46,14 +44,6 @@ extern "C" void SECTION(".init") init_arm_globals(word_t *physbase)
     get_arm_globals()->arm_fass = &arm_fass;
 }
 
-
-/**
- * Get page table index of virtual address for a 1m size
- *
- * @param vaddr         virtual address
- *
- * @return page table index for a table of the given page size
- */
 INLINE word_t page_table_1m (addr_t vaddr)
 {
     return ((word_t) vaddr >> 20) & (ARM_HWL1_SIZE - 1);
@@ -82,10 +72,6 @@ extern "C" void SECTION(".init") add_rom_mapping_init(pgent_t *pdir, addr_t vadd
 SECTION(".init")
 void map_phys_memory(pgent_t *kspace_phys, word_t *physbase)
 {
-   /* The first block of code only maps RAM that exists. This is useful
-    * for debugging purposes. However the second block of code gives
-    * faster initialization and less code footprint, so is used by default.
-    */
     for (word_t j = (word_t)VIRT_ADDR_BASE; j < (word_t)VIRT_ADDR_BASE + KERNEL_AREA_SIZE; j += PAGE_SIZE_1M)
         {
             word_t phys = virt_to_phys_init(j, physbase);
@@ -94,13 +80,6 @@ void map_phys_memory(pgent_t *kspace_phys, word_t *physbase)
         }
 }
 
-/*
- * Setup the kernel page table and map the kernel and data areas.
- *
- * This function is entered with the MMU disabled and the code
- * running relocated in physical addresses. We setup the page
- * table and bootstrap ourselves into virtual mode/addresses.
- */
 extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
 {
     extern char _kernel_space_pagetable[];
@@ -147,30 +126,20 @@ extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
     /* Initialize the kernel space data structure and link it to the pagetable */
     space_t::set_kernel_page_directory((pgent_t *)_kernel_top_level);
 
-    space_t * kspace = get_kernel_space();
+   space_t * kspace = get_kernel_space();
 
-    kmem_resource_t *kresource = get_current_kmem_resource();
+  kmem_resource_t *kresource = get_current_kmem_resource();
 
     bool r;
     /* Map the UTCB reference page */
-    r = kspace->add_mapping((addr_t)USER_UTCB_PAGE, virt_to_phys((addr_t) arm_utcb_page),
-                            UTCB_AREA_PGSIZE, space_t::read_execute, false, kresource);
+    r = kspace->add_mapping((addr_t)USER_UTCB_PAGE, virt_to_phys((addr_t) arm_utcb_page),                   UTCB_AREA_PGSIZE, space_t::read_execute, false, kresource);
 
-    jump_to((word_t)startup_system_mmu);
-}
-
-NORETURN void SECTION(".init") generic_init();
-
-extern "C" void SECTION(".init") startup_system_mmu()
-{
-    /* Configure IRQ hardware */
     init_arm_interrupts();
     init_idle_tcb();
     get_arm_globals()->current_tcb = get_idle_tcb();
-    /* Architecture independent initialisation. Should not return. */
-    generic_init();
-
-    NOTREACHED();
+    pre_tcb_init = 0;
+    run_init_script(INIT_PHASE_OTHERS);
+    get_current_scheduler()->schedule(get_current_tcb(), idle_thread, scheduler_t::sched_default);   
 }
 
 
