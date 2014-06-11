@@ -10,7 +10,6 @@
 #include <linear_ptab.h>
 #include <kernel/generic/lib.h>
 #include <schedule.h>
-#include <arch/intctrl.h>
 
 #define SYSCALL_SAVED_REGISTERS (EXCEPT_IPC_SYS_MR_NUM + 1)
 
