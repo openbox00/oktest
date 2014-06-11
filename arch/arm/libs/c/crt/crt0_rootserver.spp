@@ -15,8 +15,5 @@ _thread_start:
         ldr     r1, [sp], #4 /* argc */
         ldr     r2, [sp], #4 /* argv */
         ldr     r3, [sp], #4 /* start */
-        /* ARM abi only uses r0-r3 to pass parameters,
-         * the 5th parameter 'thread entry' is in stack.
-         */
 1:
         b       __sys_thread_entry

@@ -43,7 +43,6 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
                 }
                 current->arch.misc.exception.exception_continuation = ASM_CONTINUATION;
                 current->arch.misc.exception.exception_context = context;
-                send_exception_ipc(0x100 + fs, (word_t)fault_addr, context, ASM_CONTINUATION);
             }
         }
     }
@@ -77,7 +76,6 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
             if (cpd_entry.raw && ((cpd_entry.raw & 0xf0000003) == 0xf0000000)) {
                 space_t * utcb_space = (space_t*)cpd_entry.raw;
                 get_arm_fass()->activate_other_domain(utcb_space);
-                /* NB. We don't add utcb domain's section to dirty set */
                 return;
             }
             return;
@@ -248,9 +246,6 @@ void fass_update_pds (space_t * space, pgent_t cpg, pgent_t spg, word_t fault_se
         get_arm_fass()->clean_all(flush);
         domain_dirty |= current_domain_mask;
     } else {
-        // need to remove all entries corresponding to fault section
-        // from TLB. Cheaper to flush than to iterate over section
-        // on SA-1100 (FIXME - check other archs' MMU).
         arm_cache::tlb_flush();
     }
 }
@@ -275,10 +270,6 @@ bool fass_sync_address (space_t * space, addr_t fault_addr, bool * is_valid)
         if (leaf.l2.fault.zero == 0)
             return false;
     }
-
-    /* Does the faulter's space's section match that in the CPD for the fault
-     * address?
-     */
 
     word_t fault_section = (word_t)fault_addr >> PAGE_BITS_1M;
     pgent_t cpg = get_cpd()[fault_section];

@@ -445,6 +445,7 @@ INLINE tcb_t * tcb_t::get_pager()
  * Get TCB of a thread's exception handler
  * @return      TCB of exception handler
  */
+
 INLINE tcb_t * tcb_t::get_exception_handler()
 {
     return this->exception_handler.get_tcb();
@@ -494,37 +495,21 @@ INLINE u8_t tcb_t::get_cop_flags (void)
 /**
  * clear the notify_bits
  */
+/*
 INLINE void tcb_t::clear_notify_bits()
 {
     (void) okl4_atomic_set(&get_utcb()->notify_bits, 0);
 }
-
+*/
 /**
  * add bits to the notify_word
  */
+/*
 INLINE word_t tcb_t::add_notify_bits(const word_t bits)
 {
     return okl4_atomic_or_return(&get_utcb()->notify_bits, bits);
 }
-
-/**
- * clear bits in the notify_word
- */
-INLINE word_t tcb_t::sub_notify_bits(const word_t bits)
-{
-    word_t previous = okl4_atomic_read(&get_utcb()->notify_bits);
-    okl4_atomic_and(&get_utcb()->notify_bits, ~(bits));
-    return previous;
-}
-
-/**
- * read value of the notify_bits
- */
-INLINE word_t tcb_t::get_notify_bits(void)
-{
-    return okl4_atomic_read(&get_utcb()->notify_bits);
-}
-
+*/
 /**
  * read value of the notify_mask
  */

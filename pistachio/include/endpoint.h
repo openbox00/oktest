@@ -19,12 +19,6 @@ private:
 };
 
 INLINE tcb_t *
-endpoint_t::get_send_head(void)
-{
-    return this->send_queue.get_blocked_head();
-}
-
-INLINE tcb_t *
 endpoint_t::get_recv_head(void)
 {
     return NULL;

@@ -207,7 +207,7 @@ again:
     }
     tcb_t *tcb = entry.get_tcb();
     if (EXPECT_FALSE(!tcb->try_lock_write())) {
-        okl4_atomic_barrier_smp();
+        //okl4_atomic_barrier_smp();
         goto again;
     }
 

@@ -190,32 +190,8 @@ INLINE void tcb_t::set_mutex_thread_handle(capid_t handle)
  */
 INLINE void tcb_t::return_from_ipc (void)
 {
-    //extern continuation_t vector_ipc_syscall_return;
-
-    /*lint -e611 this is a suspicious cast, but it is OK */
     ACTIVATE_CONTINUATION(vector_ipc_syscall_return);
 }
-
-
-/**
- * Short circuit a return path from a user-level interruption or
- * exception.  That is, restore the complete exception context and
- * resume execution at user-level.
- */
-INLINE void tcb_t::return_from_user_interruption(void)
-{
-    //extern continuation_t vector_arm_abort_return;
-
-#ifdef CONFIG_IPC_FASTPATH
-    tcb_t * current = get_current_tcb();
-    current->resources.clear_kernel_ipc( current );
-    current->resources.clear_except_fp( current );
-#endif
-
-    ACTIVATE_CONTINUATION(vector_arm_abort_return);
-    // NOT REACHED
-}
-
 
 /**
  * intialize stack for given thread
@@ -321,13 +297,6 @@ INLINE void tcb_t::set_user_flags (const word_t flags)
  */
 INLINE void tcb_t::set_preempted_ip(addr_t ip)
 {
-#ifdef CONFIG_ARM_THUMB_SUPPORT
-    arm_irq_context_t *context = &(arch.context);
-
-    /* CPU has thumb support, fix ip if needed */
-    if (context->cpsr & CPSR_THUMB_BIT)
-        ip = (addr_t)((word_t)ip | 1);
-#endif
     get_utcb()->preempted_ip = (word_t)ip;
 }
 

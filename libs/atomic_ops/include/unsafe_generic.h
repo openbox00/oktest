@@ -10,11 +10,13 @@ okl4_atomic_set(okl4_atomic_word_t* target, okl4_atomic_plain_word_t value)
 }
 
 /* Bitwise operations. */
+
 static inline void
 okl4_atomic_and(okl4_atomic_word_t* target, okl4_atomic_plain_word_t mask)
 {
     target->value &= mask;
 }
+
 
 static inline okl4_atomic_plain_word_t
 okl4_atomic_and_return(okl4_atomic_word_t* target, okl4_atomic_plain_word_t mask)

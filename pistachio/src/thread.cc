@@ -134,7 +134,6 @@ void tcb_t::init(void)
 
     /* initialize scheduling */
     get_current_scheduler()->init_tcb(this);
-    //enqueue_present();
 
     init_stack();
 
@@ -188,36 +187,6 @@ bool generic_space_t::check_utcb_location (word_t utcb_address)
                                               (addr_t) (utcb_address +
                                                         sizeof (utcb_t))));
 }
-void
-tcb_t::cancel_ipcs(void)
-{
-    /* Unwind any IPC that we happen to be in the middle of. */
-    if (this->is_partner_valid())
-    {
-        tcb_t *partner = get_partner();
-        if (partner == this) {
-            this->unwind(partner);
-        } else if (((word_t)partner < SPECIAL_RAW_LIMIT) && this->get_space()) {
-            this->unwind(partner);
-        }
-    }
-
-    /* Cancel any IPCs of other threads that are sending to us. */
-    while (this->end_point.get_send_head()) {
-        tcb_t * tcb = this->end_point.get_send_head();
-        tcb->unwind(this);
-        tcb->notify(handle_ipc_error);
-        get_current_scheduler()->activate(tcb, thread_state_t::running);
-    }
-
-    /* Cancel any IPCs of other threads that are receiving from us. */
-    while (this->end_point.get_recv_head()) {
-        tcb_t * tcb = this->end_point.get_recv_head();
-        tcb->unwind(this);
-        tcb->notify(handle_ipc_error);
-        get_current_scheduler()->activate(tcb, thread_state_t::running);
-    }
-}
 
 /**
  * Release any mutexes that we currently hold.
@@ -266,7 +235,6 @@ acquire_read_lock_tcb(tcb_t *tcb, tcb_t *tcb_locked)
     tcb_t *cap_tcb;
 
 try_valid_cap_lookup:
-    okl4_atomic_barrier_smp();
     cap_t *master_cap = tcb->master_cap;
 
     if (EXPECT_TRUE(master_cap != NULL)) {
@@ -281,9 +249,7 @@ try_valid_cap_lookup:
         /* if cap still points to this tcb */
         if (EXPECT_TRUE(cap_tcb == tcb)) {
             if (tcb == tcb_locked) {
-                //tcb->lock_read_already_held();
             } else if (EXPECT_FALSE(!tcb->try_lock_read())) {
-                okl4_atomic_barrier_smp();
                 goto try_valid_cap_lookup;
             }
             return tcb;
@@ -292,13 +258,6 @@ try_valid_cap_lookup:
     return NULL;
 }
 
-/**
- * Lookup a TCB by its thread-handle
- *
- * @param threadhandle Thread handle of thread to lookup
- *
- * @returns NULL if non-existing, else tcb (locked)
- */
 tcb_t*
 lookup_tcb_by_handle_locked(word_t threadhandle)
 {
@@ -331,9 +290,6 @@ void
 tcb_t::delete_tcb(kmem_resource_t *kresource)
 {
     scheduler_t *scheduler = get_current_scheduler();
-
-    this->cancel_ipcs();
-
     /* Unwind ourselves thread into an aborted state. */
     this->unwind(NULL);
 
@@ -422,14 +378,12 @@ tcb_t::unwind(tcb_t *partner)
     }
 
     if (cstate.is_waiting_mutex()) {
-       // get_current_scheduler()->scheduler_lock();
-        //get_current_scheduler()->scheduler_unlock();
         get_current_scheduler()->update_inactive_state(this,
                 thread_state_t::aborted);
         return;
     }
 }
-
+#if 0
 CONTINUATION_FUNCTION(handle_ipc_error)
 {
     tcb_t * current = get_current_tcb();
@@ -442,7 +396,7 @@ CONTINUATION_FUNCTION(handle_ipc_error)
     if (saved_state.is_running())
     {
         current->restore_state(3);
-        current->return_from_user_interruption();
+        //current->return_from_user_interruption();
     }
     else
     {
@@ -453,7 +407,7 @@ CONTINUATION_FUNCTION(handle_ipc_error)
 
     NOTREACHED();
 }
-
+#endif
 /* Assumes thread_state_lock is held by caller */
 void tcb_t::save_state (word_t mrs)
 {
