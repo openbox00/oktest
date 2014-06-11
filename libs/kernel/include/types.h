@@ -39,17 +39,6 @@ INLINE addr_t addr_mask (addr_t addr, word_t mask)
 }
 
 /**
- * Align address downwards.  It is assumed that the alignment is a power of 2.
- * @param addr          original address
- * @param align         alignment
- * @return new address
- */
-INLINE addr_t addr_align (addr_t addr, word_t align)
-{
-    return addr_mask (addr, ~(align - 1));
-}
-
-/**
  * Align address upwards.  It is assumed that the alignment is a power of 2.
  * @param addr          original address
  * @param align         alignment

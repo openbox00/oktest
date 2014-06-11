@@ -3,17 +3,22 @@
  */
 
 #include <l4.h>
-#include <debug.h>
+//#include <debug.h>
 #include <schedule.h>
-#include <space.h>
+//#include <space.h>
 #include <arch/memory.h>
 #include <interrupt.h>
 #include <config.h>
 #include <arch/hwspace.h>
-#include <cpu/syscon.h>
-#include <arch/init.h>
 #include <kernel/generic/lib.h>
 #include <soc/soc.h>
+
+/* Primary CP15 registers (CRn) */
+#define C15_control             c1
+#define C15_domain              c3
+
+/* Default opcode2 register (opcode2) */
+#define C15_OP2_default         0
 
 CONTINUATION_FUNCTION(idle_thread);
 
@@ -21,6 +26,34 @@ CONTINUATION_FUNCTION(idle_thread)
 {
     while (1) {
     }
+}
+
+template<typename T> INLINE T virt_to_phys_init(T x, word_t *p)
+{
+        return (T) ((u32_t) x - VIRT_ADDR_RAM + *p);
+}
+
+template<typename T> INLINE T virt_to_page_table(T x)
+{
+    return (T) ((u32_t) x - VIRT_ADDR_RAM + VIRT_ADDR_PGTABLE);
+}
+
+INLINE void generic_space_t::set_kernel_page_directory(pgent_t * pdir)
+{
+    get_kernel_space()->pdir = pdir;
+}
+
+#define write_cp15_register(CRn, CRm, op2, val)                     \
+{                                                                   \
+    word_t v = (word_t)val;                                         \
+    __asm__ __volatile__ (                                          \
+        "mcr    p15, 0, "_(v)","STR(CRn)", "STR(CRm)","STR(op2)";"  \
+    _INPUT(v));                                                     \
+};
+
+INLINE addr_t addr_align (addr_t addr, word_t align)
+{
+    return addr_mask (addr, ~(align - 1));
 }
 
 extern word_t pre_tcb_init;
@@ -49,24 +82,12 @@ INLINE word_t page_table_1m (addr_t vaddr)
     return ((word_t) vaddr >> 20) & (ARM_HWL1_SIZE - 1);
 }
 
-/*
- * Add 1MB mappings during init.
- * This function works with the mmu disabled
- */
 extern "C" void SECTION(".init") add_mapping_init(pgent_t *pdir, addr_t vaddr,
                 addr_t paddr, memattrib_e attrib)
 {
     pgent_t *pg = pdir + (page_table_1m(vaddr));
 
     pg->set_entry_1m(NULL, paddr, true, true, true, attrib);
-}
-
-extern "C" void SECTION(".init") add_rom_mapping_init(pgent_t *pdir, addr_t vaddr,
-                addr_t paddr, memattrib_e attrib)
-{
-    pgent_t *pg = pdir + (page_table_1m(vaddr));
-
-    pg->set_entry_1m(NULL, paddr, true, false, true, attrib);
 }
 
 SECTION(".init")
@@ -79,6 +100,38 @@ void map_phys_memory(pgent_t *kspace_phys, word_t *physbase)
             add_mapping_init( kspace_phys, (addr_t)phys_to_page_table_init(phys, physbase), (addr_t)phys, writethrough );
         }
 }
+
+#include <l4.h>
+#include <tcb.h>
+#include <interrupt.h>
+#include <arch/intctrl.h>
+#include <schedule.h>
+#include <cpu/syscon.h>
+
+void SECTION(".init") init_arm_interrupts()
+{
+    bool r;
+    r = get_kernel_space()->add_mapping((addr_t)ARM_HIGH_VECTOR_VADDR,
+                                        (addr_t)virt_to_phys(&arm_high_vector),
+                                        pgent_t::size_4k,
+                                        space_t::read_write_ex,
+                                        true,
+                                        get_current_kmem_resource());    word_t control;
+    
+	read_cp15_register(C15_control, C15_CRm_default, C15_OP2_default, control);
+
+    control |= C15_CONTROL_A;
+    write_cp15_register(C15_control, C15_CRm_default, C15_OP2_default, control);
+
+    /* Initialize cached values in VECTOR page */
+    extern tcb_t** vector_tcb_handle_array, **thread_handle_array;
+    extern word_t vector_num_tcb_handles, num_tcbs;
+
+    /* Cache these values */
+    vector_num_tcb_handles = num_tcbs;
+    vector_tcb_handle_array = thread_handle_array;
+}
+
 
 extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
 {

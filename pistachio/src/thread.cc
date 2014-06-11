@@ -18,6 +18,12 @@
 extern "C" CONTINUATION_FUNCTION(initial_to_user);
 void handle_ipc_error (void);
 
+INLINE addr_t addr_align (addr_t addr, word_t align)
+{
+    return addr_mask (addr, ~(align - 1));
+}
+
+
 CONTINUATION_FUNCTION(thread_startup)
 {
     tcb_t * current = get_current_tcb();

@@ -22,6 +22,12 @@
 space_t * global_spaces_list = NULL;
 spinlock_t spaces_list_lock;
 
+INLINE addr_t addr_align (addr_t addr, word_t align)
+{
+    return addr_mask (addr, ~(align - 1));
+}
+
+
 /* Table containing mappings from spaceid_t to space_t* */
 spaceid_lookup_t space_lookup;
 

@@ -51,7 +51,6 @@ public:
     bool check_utcb_location (word_t utcb_address);
 
     void enqueue_spaces();
-    void dequeue_spaces();
 
     /* Allocate and free page directory */
     bool allocate_page_directory(kmem_resource_t *kresource);
@@ -89,7 +88,6 @@ public:
     bool is_user_area(addr_t addr);
     bool is_user_area(fpage_t fpage);
     bool is_utcb_area(addr_t addr);
-    bool contains_utcb_area(addr_t addr, word_t size);
     bool is_mappable(addr_t addr);
     bool is_mappable(addr_t start, addr_t end);
     bool is_mappable(fpage_t fpage);
@@ -102,7 +100,6 @@ public:
 
             permissions.raw = 0;
         }
-    void free_security(void);
 
     void allow_plat_control(void) { permissions.access.plat_control = 1; }
     void restrict_plat_control(void) { permissions.access.plat_control = 0; }
@@ -110,11 +107,9 @@ public:
 
     clist_t * lookup_clist(clistid_t clist_id); 
     space_t * lookup_space(spaceid_t space_id);
-    //mutex_t * lookup_mutex(mutexid_t mutex_id);
 
     /* temporary */
     bool can_access_kresources(void) { return kmem_resource != NULL; }
-    void grant_access_to_kresources(void);
 
     /* enable the space */
     void activate(tcb_t *tcb);
@@ -127,8 +122,6 @@ public:
     fpage_t get_utcb_area (void) { return utcb_area; }
     word_t get_thread_count (void) { return thread_count; }
     prio_t get_maximum_priority(void) { return maximum_priority; }
-
-    //void set_space_id(spaceid_t id) { space_id = id; }
     void set_utcb_area (fpage_t f) { utcb_area = f; }
     void set_thread_count (word_t c) { thread_count = c; }
     void set_maximum_priority(prio_t prio) { maximum_priority = prio; }
@@ -154,10 +147,6 @@ public:
 
     /* static functions used at init time only */
     static void set_kernel_page_directory(pgent_t * pdir);
-
-    /* space_t data  - layed out for cache locality */
-    /* Note that this structure is not always cache aligned */
-
 private:
     /* uncommonly accessed data */
     word_t              thread_count;
@@ -175,23 +164,12 @@ private:
 
 private:
     /* commonly accessed data */
-#if defined (CONFIG_CPULOCAL_PDIRS)
-    pgent_t *           pdir[CONFIG_NUM_DOMAINS];
-#else
     pgent_t *           pdir;
-#endif
 public:
     segment_list_t *    phys_segment_list;
 private:
     kmem_resource_t *   kmem_resource;
 public:
-#ifdef CONFIG_SPACE_NAMES
-    char                debug_name[MAX_DEBUG_NAME_LENGTH];
-#endif
-
-    /* arch specific data ends up here */
-
-    /* allow asmsyms here */
     friend void mkasmsym();
 };
 
@@ -203,14 +181,7 @@ void SECTION(SEC_INIT) setup_initial_mappings (space_t * space);
 
 #include <arch/space.h>
 
-/* Table containing mappings from spaceid_t to space_t* */
 extern space_t * space_table;
-
-/**
- * enqueue a space into the spaces list
- * These are now compiled in all the time so that ipc control ban bit
- * can be cleared when a space is destroyed.
- */
 extern space_t * global_spaces_list;
 extern spinlock_t spaces_list_lock;
 
@@ -222,13 +193,6 @@ INLINE void generic_space_t::enqueue_spaces()
     spaces_list_lock.unlock();
 }
 
-INLINE void generic_space_t::dequeue_spaces()
-{
-    spaces_list_lock.lock();
-    DEQUEUE_LIST(space_t, global_spaces_list, this, spaces_list);
-    spaces_list_lock.unlock();
-}
-
 INLINE bool is_kresourced_space(space_t * space)
 {
     return space->can_access_kresources();
@@ -237,12 +201,6 @@ INLINE bool is_kresourced_space(space_t * space)
 INLINE bool generic_space_t::is_utcb_area(addr_t addr)
 {
     return get_utcb_area().is_addr_in_fpage(addr);
-}
-
-INLINE bool generic_space_t::contains_utcb_area(addr_t addr, word_t size)
-{
-    addr_t end = (addr_t)(((word_t)addr)+size);
-    return get_utcb_area().is_range_overlapping(addr, end);
 }
 
 INLINE bool generic_space_t::is_mappable(addr_t addr)
@@ -265,11 +223,7 @@ INLINE bool generic_space_t::is_mappable(addr_t start, addr_t end)
 
 INLINE bool generic_space_t::is_mappable(fpage_t fpage)
 {
-    return (this->is_user_area(fpage)
-#ifndef CONFIG_ARCH_ARM
-            && (!get_utcb_area().is_overlapping(fpage))
-#endif
-           );
+    return (this->is_user_area(fpage));
 }
 
 INLINE bool generic_space_t::is_user_area(fpage_t fpage)
@@ -278,42 +232,11 @@ INLINE bool generic_space_t::is_user_area(fpage_t fpage)
         is_user_area(addr_offset(fpage.get_address(), fpage.get_size()-1));
 }
 
-INLINE void generic_space_t::free_security(void)
-{
-    clist_t *list = clist;
-    clist = NULL;
-    list->remove_space((space_t*)this);
-}
-
-
 INLINE spaceid_t spaceid(word_t id)
 {
     spaceid_t t;
     t.set_raw(id);
     return t;
-}
-
-/* May as well return kernel space since mappings should be identical for
- * the kernel area as in the each of the user's address spaces.
- */
-
-#ifndef ARCH_ARM
-/* ARM uses software GOT for this now */
-INLINE space_t * get_kernel_space()
-{
-    extern space_t __kernel_space_object;
-    return &__kernel_space_object;
-}
-#endif
-
-INLINE void generic_space_t::set_kernel_page_directory(pgent_t * pdir)
-{
-    get_kernel_space()->pdir = pdir;
-}
-
-INLINE void generic_space_t::grant_access_to_kresources(void)
-{
-    set_kmem_resource(get_current_kmem_resource());
 }
 
 #endif /* !__SPACE_H__ */

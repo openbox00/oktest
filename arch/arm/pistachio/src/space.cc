@@ -18,6 +18,7 @@
 
 extern bitmap_t ipc_bitmap_ids;
 
+
 bool space_t::add_mapping(addr_t vaddr, addr_t paddr, pgent_t::pgsize_e size,
                           rwx_e rwx, bool kernel, memattrib_e attrib,
                           kmem_resource_t *kresource)

@@ -17,10 +17,10 @@
 #include <kernel/generic/lib.h>
 #include <kmem_resource.h>
 
-
-#if UTCB_AREA_SECTIONS != CONFIG_MAX_SPACES
-#error CONFIG_MAX_SPACES must be the same as UTCB_AREA_SECTIONS on the ARM architecture
-#endif
+INLINE addr_t addr_align (addr_t addr, word_t align)
+{
+    return addr_mask (addr, ~(align - 1));
+}
 
 /* The kernel space is statically defined beause it is needed
  * before the virtual memory has been setup or the kernel
