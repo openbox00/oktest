@@ -1,24 +1,33 @@
 /*
  * Description:   ARM specific initialization code
  */
-
-#include <l4.h>
-//#include <debug.h>
 #include <schedule.h>
-//#include <space.h>
-#include <arch/memory.h>
-#include <interrupt.h>
-#include <config.h>
-#include <arch/hwspace.h>
-#include <kernel/generic/lib.h>
-#include <soc/soc.h>
+#include <queueing.h>
 
 /* Primary CP15 registers (CRn) */
 #define C15_control             c1
 #define C15_domain              c3
 
+
+#define C15_CRm_default         c0
 /* Default opcode2 register (opcode2) */
 #define C15_OP2_default         0
+
+extern "C" {
+    extern char _start_rom[];
+    extern char _end_rom[];
+    extern char _start_ram[];
+    extern char _end_ram[];
+    extern char _start_init[];
+    extern char _end_init[];
+    extern char _end[];
+}
+
+#define start_init              ((addr_t) _start_init)
+#define end_init                ((addr_t) _end_init)
+
+
+extern word_t arm_high_vector;
 
 CONTINUATION_FUNCTION(idle_thread);
 
@@ -43,6 +52,11 @@ INLINE void generic_space_t::set_kernel_page_directory(pgent_t * pdir)
     get_kernel_space()->pdir = pdir;
 }
 
+#define read_cp15_register(CRn, CRm, op2, ret)                        \
+    __asm__ __volatile__ (                                            \
+        "mrc    p15, 0, "_(ret)","STR(CRn)", "STR(CRm)","STR(op2)";"  \
+        _OUTPUT(ret))
+
 #define write_cp15_register(CRn, CRm, op2, val)                     \
 {                                                                   \
     word_t v = (word_t)val;                                         \
@@ -60,6 +74,53 @@ extern word_t pre_tcb_init;
 
 /* UTCB reference page. This needs to be revisited */
 ALIGNED(UTCB_AREA_PAGESIZE) char arm_utcb_page[UTCB_AREA_PAGESIZE] UNIT("utcb");
+
+prio_t
+scheduler_t::get_highest_priority(void)
+{
+    word_t first_level_bitmap = prio_queue.index_bitmap;
+    if (!first_level_bitmap) {
+        return (prio_t)-1;
+    }
+    word_t first_level_index = msb(first_level_bitmap);
+    word_t second_level_bitmap = prio_queue.prio_bitmap[first_level_index];
+    word_t second_level_index = msb(second_level_bitmap);
+    prio_t top_prio = first_level_index * BITS_WORD + second_level_index;
+    return top_prio;
+}
+void
+scheduler_t::schedule(tcb_t * current, continuation_t continuation,
+                      flags_t flags)
+{
+    prio_t max_prio = get_highest_priority();
+    bool current_runnable = current->get_state().is_runnable() && !current->is_reserved();
+    if (current_runnable) {
+        if (current->effective_prio > max_prio ||
+                (!(flags & sched_round_robin)
+                        && current->effective_prio == max_prio)) {
+            schedule_lock.unlock();
+            ACTIVATE_CONTINUATION(continuation);
+        }
+        if (flags & preempting_thread) {
+            mark_thread_as_preempted(current);
+        }
+    }
+    tcb_t *next;
+    if (max_prio >= 0) {
+        next = prio_queue.get(max_prio);
+        dequeue(next);
+    } else {
+        next = get_idle_tcb();
+    }
+    (void)next->grab();
+    switch_from(current, continuation);
+
+	if (current_runnable && current != get_idle_tcb()) {
+        enqueue(current);
+    }
+    switch_to(next, next);
+}
+
 
 extern "C" void SECTION(".init") init_arm_globals(word_t *physbase)
 {
@@ -101,12 +162,6 @@ void map_phys_memory(pgent_t *kspace_phys, word_t *physbase)
         }
 }
 
-#include <l4.h>
-#include <tcb.h>
-#include <interrupt.h>
-#include <arch/intctrl.h>
-#include <schedule.h>
-#include <cpu/syscon.h>
 
 void SECTION(".init") init_arm_interrupts()
 {
