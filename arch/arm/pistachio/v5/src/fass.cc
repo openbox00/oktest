@@ -14,25 +14,30 @@ arm_fass_t arm_fass;
 
 void arm_fass_t::init(void)
 {
+#if 0
     domain_dirty = 0;
     this->domain_space[0] = get_kernel_space();
     get_kernel_space()->set_domain(0);
     rand = 1;
+#endif
 }
 
 void arm_fass_t::clean_all(word_t flush)
 {
+#if 0
     if (flush) {
         domain_dirty = current_domain_mask;
         arm_cache::cache_flush();
     }
 
     arm_cache::tlb_flush();
+#endif
 }
 
 int arm_fass_t::replacement_domain(void)
 {
     word_t domain;
+#if 0
     rand += 7333;
 
     /* First search for a clean domain */
@@ -52,13 +57,15 @@ int arm_fass_t::replacement_domain(void)
 
         domain = rand % ARM_DOMAINS;
     } while ((domain == 0) || (domain == current_domain));
-
+#endif
     return domain;
 }
 
 arm_domain_t arm_fass_t::domain_recycle(space_t *space)
 {
+
     arm_domain_t target;
+#if 0
     space_t *old_space;
 
     target = replacement_domain();
@@ -110,7 +117,7 @@ arm_domain_t arm_fass_t::domain_recycle(space_t *space)
 
         clean_all(dirty);
     }
-
+#endif
     return target;
 }
 

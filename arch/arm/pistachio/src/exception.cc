@@ -12,23 +12,7 @@
 #include <schedule.h>
 #include <arch/intctrl.h>
 
-NORETURN INLINE void
-halt_user_thread(continuation_t continuation)
-{
-    tcb_t * current = get_current_tcb();
-    scheduler_t * scheduler = get_current_scheduler();
-
-    scheduler->deactivate_sched(current, thread_state_t::halted,
-                                current, continuation,
-                                scheduler_t::sched_default);
-}
 #define SYSCALL_SAVED_REGISTERS (EXCEPT_IPC_SYS_MR_NUM + 1)
-
-extern "C" NORETURN void reset_exception(arm_irq_context_t *context)
-{
-    continuation_t continuation = ASM_CONTINUATION;
-    halt_user_thread(continuation);
-}
 
 void tcb_t::copy_user_regs(tcb_t *src)
 {
