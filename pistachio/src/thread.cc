@@ -155,6 +155,17 @@ tcb_t::create_kernel_thread(utcb_t * new_utcb)
     return true;
 }
 
+void tcb_t::create_startup_stack (void (*func)())
+{
+    init_stack();
+
+    notify(func);
+
+    arm_irq_context_t *context = &(arch.context);
+
+    context->cpsr = CPSR_USER_MODE;
+}
+
 bool tcb_t::activate(void (*startup_func)(), kmem_resource_t *kresource)
 {
     this->utcb = get_space()->allocate_utcb(this, kresource);

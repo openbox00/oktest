@@ -48,22 +48,9 @@ MKASMSYM( OFS_SCHED_PRIO_BITMAP, cpp_offsetof(scheduler_t, prio_queue.prio_bitma
 MKASMSYM( OFS_SYNCPOINT_DONATEE,      cpp_offsetof(syncpoint_t, donatee));
 MKASMSYM( OFS_SYNCPOINT_BLOCKED_HEAD, cpp_offsetof(syncpoint_t, blocked_head));
 
-/* Endpoints */
-MKASMSYM( OFS_ENDPOINT_SEND_QUEUE,    cpp_offsetof(endpoint_t, send_queue));
-#if defined(CONFIG_SCHEDULE_INHERITANCE)
-MKASMSYM( OFS_ENDPOINT_RECV_QUEUE,    cpp_offsetof(endpoint_t, recv_queue));
-#endif
-
 /* Ringlists */
 MKASMSYM( OFS_RINGLIST_NEXT,          cpp_offsetof(ringlist_t<tcb_t>, next));
 MKASMSYM( OFS_RINGLIST_PREV,          cpp_offsetof(ringlist_t<tcb_t>, prev));
-
-/* Capabilities */
-MKASMSYM( OFS_CLIST_MAX_ID,           cpp_offsetof(clist_t, max_id));
-MKASMSYM( OFS_CLIST_ENTRIES,          cpp_offsetof(clist_t, entries));
-MKASMSYM( OFS_CAP_RAW,                cpp_offsetof(cap_t, raw));
-MKASMSYM( OFS_REF_OBJECT,             cpp_offsetof(ref_t, object));
-MKASMSYM( LOG2_SIZEOF_CAP_T,          (word_t) 3); /* log2(sizeof(cap_t)) */
 
 /* capid constants */
 MKASMSYM( ASM_ANYTHREAD_RAW,        (word_t) ANYTHREAD_RAW);
@@ -82,12 +69,10 @@ MKASMSYM( OFS_GLOBAL_CURRENT_TCB,      cpp_offsetof(arm_globals_t, current_tcb))
 MKASMSYM( OFS_GLOBAL_CURRENT_SCHEDULE, cpp_offsetof(arm_globals_t, current_schedule));
 MKASMSYM( OFS_GLOBAL_CURRENT_CLIST,    cpp_offsetof(arm_globals_t, current_clist));
 MKASMSYM( OFS_GLOBAL_RAM_PHYS,         cpp_offsetof(arm_globals_t, phys_addr_ram));
-#if defined(CONFIG_ENABLE_FASS)
 MKASMSYM( OFS_ARM_CPD,                 cpp_offsetof(arm_globals_t, cpd));
 MKASMSYM( OFS_ARM_CURRENT_DOMAIN,      cpp_offsetof(arm_globals_t, current_domain));
 MKASMSYM( OFS_ARM_CURRENT_DOMAIN_MASK, cpp_offsetof(arm_globals_t, current_domain_mask));
 MKASMSYM( OFS_ARM_DOMAIN_DIRTY,        cpp_offsetof(arm_globals_t, domain_dirty));
-#endif
 MKASMSYM( ASM_KTCB_SIZE,            (word_t)KTCB_SIZE);
 
 MKASMSYM( ASM_CAPID_INDEX_MASK,     (word_t) CAPID_INDEX_MASK);

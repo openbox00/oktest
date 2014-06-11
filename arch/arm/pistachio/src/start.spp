@@ -3,13 +3,6 @@
 
         .section .init.start
         EXPORT __phys_addr_ram
-
-/**
- * Entry point from the platform ASM into C kernel
- * Precondition: MMU and page tables are disabled
- * Warning: Do not use local variables in arch_init()
- */
-
         BEGIN_PROC(kernel_arch_init)
         adr     r0,     __phys_addr_ram
         bl      init_memory
