@@ -1,26 +1,14 @@
 /*
  * Description:   ARMv5 syscall and page fault handlers
  */
-
-#include <l4.h>
-#include <debug.h>
-
 #include <space.h>
 #include <tcb.h>
 
 /* ARM program counter fixup - LSB used for context frame type */
 #define PC(x)           (x & (~1UL))
 
-/* Function declarations */
-
-CONTINUATION_FUNCTION(finish_arm_memory_abort);
-
 bool fass_sync_address (space_t * space, addr_t fault_addr, bool * is_valid = NULL);
 void fass_update_pds (space_t * space, pgent_t cpg, pgent_t spg, word_t fault_section);
-
-extern "C" NORETURN void
-send_exception_ipc (word_t exc_no, word_t exc_code,
-        arm_irq_context_t *context, continuation_t continuation);
 
 extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
         arm_irq_context_t *context, word_t data_abt)
@@ -189,26 +177,7 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
 handle_fault:
     current->arch.misc.fault.fault_addr = fault_addr;
     current->arch.misc.fault.page_fault_continuation = ASM_CONTINUATION;
-    (void)fass_sync_address(space, fault_addr);
     return;
-}
-
-/* Continue after handling a user pagefault (from arm_memory_abort) */
-CONTINUATION_FUNCTION(finish_arm_memory_abort)
-{
-    tcb_t * current = get_current_tcb();
-    space_t * space = current->get_space();
-
-    addr_t fault_addr = current->arch.misc.fault.fault_addr;
-
-    if (!space) {
-        space = get_kernel_space();
-    }
-
-    /* return value is ignored here since we return anyway */
-    (void)fass_sync_address(space, fault_addr);
-
-    ACTIVATE_CONTINUATION(current->arch.misc.fault.page_fault_continuation);
 }
 
 void fass_update_pds (space_t * space, pgent_t cpg, pgent_t spg, word_t fault_section)
@@ -249,7 +218,6 @@ void fass_update_pds (space_t * space, pgent_t cpg, pgent_t spg, word_t fault_se
         arm_cache::tlb_flush();
     }
 }
-
 bool fass_sync_address (space_t * space, addr_t fault_addr, bool * is_valid)
 {
     /* Try lookup the mapping */
@@ -285,4 +253,3 @@ bool fass_sync_address (space_t * space, addr_t fault_addr, bool * is_valid)
         *is_valid = true;
     return false;
 }
-
