@@ -14,30 +14,15 @@ arm_fass_t arm_fass;
 
 void arm_fass_t::init(void)
 {
-#if 0
-    domain_dirty = 0;
-    this->domain_space[0] = get_kernel_space();
-    get_kernel_space()->set_domain(0);
-    rand = 1;
-#endif
 }
 
 void arm_fass_t::clean_all(word_t flush)
 {
-#if 0
-    if (flush) {
-        domain_dirty = current_domain_mask;
-        arm_cache::cache_flush();
-    }
-
-    arm_cache::tlb_flush();
-#endif
 }
 
 int arm_fass_t::replacement_domain(void)
 {
     word_t domain;
-#if 0
     rand += 7333;
 
     /* First search for a clean domain */
@@ -57,7 +42,6 @@ int arm_fass_t::replacement_domain(void)
 
         domain = rand % ARM_DOMAINS;
     } while ((domain == 0) || (domain == current_domain));
-#endif
     return domain;
 }
 
@@ -65,7 +49,6 @@ arm_domain_t arm_fass_t::domain_recycle(space_t *space)
 {
 
     arm_domain_t target;
-#if 0
     space_t *old_space;
 
     target = replacement_domain();
@@ -117,48 +100,13 @@ arm_domain_t arm_fass_t::domain_recycle(space_t *space)
 
         clean_all(dirty);
     }
-#endif
     return target;
 }
 
 /* Free up a domain, space must have a valid domain */
+
 void arm_fass_t::free_domain(space_t *space)
 {
-    if (!space)
-        return;
-
-    arm_domain_t target;
-
-    /* remove access to this domain */
-    space->flush_sharing_spaces();
-
-    target = space->get_domain();
-    space->set_domain(INVALID_DOMAIN);
-    domain_space[target] = NULL;
-
-    /*
-     * Remove the elements in the CPD belonging to the domain to be
-     * removed.
-     */
-    pgent_t *cpd = get_cpd();
-    cpd_bitfield_t *domain_set = cpd_set[target];
-    for (word_t i = 0, j; i < CPD_BITFIELD_ARRAY_SIZE*CPD_BITFIELD_WORD_SIZE; i+=CPD_BITFIELD_WORD_SIZE) {
-        j = *domain_set ++;
-
-        if (EXPECT_FALSE(j))
-        {
-            do {
-                word_t k = msb(j);
-
-                word_t section = i + k;
-                cpd[section].raw = 0;
-
-                j &= ~(1UL << k);
-            } while (j);
-
-            *(domain_set-1) = 0;
-        }
-    }
 }
 
 space_t *arm_fass_t::get_space(arm_domain_t domain)
@@ -168,13 +116,6 @@ space_t *arm_fass_t::get_space(arm_domain_t domain)
 
     return domain_space[domain];
 }
-
-void arm_fass_t::set_space(arm_domain_t domain, space_t *space)
-{
-    if (domain != INVALID_DOMAIN)
-        domain_space[domain] = space;
-}
-
 
 
 #endif /* CONFIG_ENABLE_FASS */
