@@ -6,7 +6,6 @@
 #include <config.h>
 #include <tcb.h>
 #include <ipc.h>
-#include <arch/ipc.h>
 #include <capid.h>
 #include <schedule.h>
 #include <space.h>
@@ -301,7 +300,7 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
     }
     scheduler->delete_tcb(this);
 
-    resources.free(this, kresource);
+    //resources.free(this, kresource);
 
     set_pager(NULL);
     set_exception_handler(NULL);

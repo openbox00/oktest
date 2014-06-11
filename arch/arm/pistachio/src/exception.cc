@@ -7,7 +7,6 @@
 #include <space.h>
 #include <tcb.h>
 #include <ipc.h>
-#include <arch/ipc.h>
 #include <linear_ptab.h>
 #include <kernel/generic/lib.h>
 #include <schedule.h>

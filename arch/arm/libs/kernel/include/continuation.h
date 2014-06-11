@@ -23,25 +23,6 @@
         while(1);                                                       \
     } while(false)
 
-
-NORETURN INLINE void activate_function(word_t argument0, word_t argument1, word_t argument2, word_t function)
-{
-    register word_t arg0    ASM_REG("r0") = argument0;
-    register word_t arg1    ASM_REG("r1") = argument1;
-    register word_t arg2    ASM_REG("r2") = argument2;
-
-    __asm__ __volatile__ (
-        CHECK_ARG("r0", "%0")
-        CHECK_ARG("r1", "%1")
-        CHECK_ARG("r2", "%2")
-        "       orr     sp,     sp,     %3              \n"
-        "       mov     pc,     %4                      \n"
-        :: "r" (arg0), "r" (arg1), "r" (arg2), "i" (STACK_TOP),
-           "r" (function)
-    );
-    while (1);
-}
-
 #endif /* ! ASSEMBLY */
 
 #endif /* ! __ARM__CONTINUATION_H__ */
