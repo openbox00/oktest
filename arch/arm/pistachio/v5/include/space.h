@@ -35,7 +35,6 @@ public:
     /* domain sharing */
     bool is_sharing_domain(space_t *space);
     bool is_manager_of_domain(space_t *target);
-    //bool domain_link(generic_space_t *source);
     bool domain_unlink(generic_space_t *source);
     bool window_share_fpage(space_t *space, fpage_t fpage,
                             kmem_resource_t *kresource);
@@ -136,45 +135,6 @@ INLINE pgent_t * get_cpd()
 }
 
 /**
- * Ensure the CPD is in sync with the updated pagetable
- */
-INLINE void pgent_t::cpd_sync (generic_space_t * s)
-{
-    arm_domain_t n = ((space_t *)s)->get_domain();
-    /* complicated offset calculation so only bother if we have valid domain */
-    if (n && (n != INVALID_DOMAIN)) {
-        word_t offset = ARM_HWL1_SIZE;
-        /* special case for utcb_section */
-        if (this == ((space_t*)s)->pgent_utcb()) {
-            offset = ( UTCB_AREA_START/ARM_SECTION_SIZE +
-                        (s->get_space_id().get_spaceno()) ) * sizeof(pgent_t);
-        } else {
-            /* find which level 1 page table it is in */
-            for (word_t i = 0; i < ARM_L0_ENTRIES; i++) {
-                pgent_t * pg = s->pgent(i);
-                if (pg->is_valid(s, pgent_t::size_level0) && pg->is_subtree(s, pgent_t::size_level0)) {
-                    offset = ((word_t) this) - ((word_t)pg->subtree(s, pgent_t::size_level0));
-                    if (offset < ARM_L1_SIZE) {
-                        offset += i*ARM_L1_SIZE;
-                        break;
-                    }
-                }
-            }
-        }
-
-        /* make sure pgent is in space */
-        pgent_t *cpd_entry = (pgent_t *)(((word_t)get_cpd()) + offset);
-
-        if ((cpd_entry->get_domain() == n)) {
-            pgent_t temp;
-            temp.raw = this->raw;
-            temp.set_domain(n);
-            cpd_entry->raw = temp.raw;
-        }
-    }
-}
-
-/**
  * Virtual space for single address space support
  */
 INLINE word_t space_t::get_vspace(void)
@@ -214,7 +174,6 @@ INLINE void space_t::set_domain(arm_domain_t new_domain)
     if (new_domain != INVALID_DOMAIN) {
         this->domain_mask = (1UL << (new_domain*2)) | 1;
     } else {
-        //printf("unshare %p : %d\n", this, get_domain());
         this->domain_mask = 0;
     }
     this->domain = new_domain;
@@ -232,10 +191,6 @@ INLINE void space_t::add_domain_access(arm_domain_t domain, bool manager)
 
 INLINE void space_t::remove_domain_access(arm_domain_t domain)
 {
-    /*
-     * Clear our domain_mask since we will cache_flush soon
-     * and we don't want to mark clean domains as dirty
-     */
     if (this->domain != INVALID_DOMAIN)
         this->domain_mask = (1UL << (this->domain*2)) | 1;
     else
@@ -250,18 +205,6 @@ INLINE arm_pid_t space_t::get_pid(void)
 INLINE void space_t::set_pid(arm_pid_t new_pid)
 {
     this->bits.pid = new_pid;
-}
-
-/**
- * Try to copy a mapping from kernel space into the current space
- * @param addr the address for which the mapping should be copied
- * @return true if something was copied, false otherwise.
- * Synchronization must happen at the highest level, allowing sharing.
- */
-INLINE bool generic_space_t::sync_kernel_space(addr_t addr)
-{
-    /* We set everything up at initialisation time */
-    return false;
 }
 
 #endif /*__GLUE__V4_ARM__V5__SPACE_H*/

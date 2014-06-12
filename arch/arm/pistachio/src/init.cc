@@ -4,23 +4,25 @@
 #include <schedule.h>
 #include <queueing.h>
 #include <linear_ptab.h>
-#include <space.h>              /* space_t              */
-#include <tcb.h>
-#include <arch/pgent.h>
-#include <arch/memory.h>
-#include <config.h>
-#include <kernel/arch/special.h>
-#include <kernel/bitmap.h>
-#include <kernel/generic/lib.h>
 
 /* Primary CP15 registers (CRn) */
 #define C15_control             c1
 #define C15_domain              c3
 
 
+/* Default secondary register (CRm) */
 #define C15_CRm_default         c0
 /* Default opcode2 register (opcode2) */
 #define C15_OP2_default         0
+
+/* CP15 - Control Register */
+#define C15_CONTROL_A           0x0002                  /* Alignment fault enable       */
+#define C15_CONTROL_M           0x0001                  /* Memory management enable     */
+#define C15_CONTROL_X           0x2000                  /* Remap interrupt vector       */
+
+#define C15_CONTROL_INIT        0
+
+#define C15_CONTROL_KERNEL      (C15_CONTROL_M | C15_CONTROL_X)
 
 extern "C" {
     extern char _start_rom[];
@@ -31,6 +33,8 @@ extern "C" {
     extern char _end_init[];
     extern char _end[];
 }
+
+
 
 #define start_init              ((addr_t) _start_init)
 #define end_init                ((addr_t) _end_init)
@@ -60,6 +64,11 @@ INLINE void generic_space_t::set_kernel_page_directory(pgent_t * pdir)
 {
     get_kernel_space()->pdir = pdir;
 }
+
+#define _INS_(x) #x
+#define STR(x) _INS_(x)
+#define _OUTPUT(x)  : [x] "=r" (x)
+#define _INPUT(x)  :: [x] "r" (x)
 
 #define read_cp15_register(CRn, CRm, op2, ret)                        \
     __asm__ __volatile__ (                                            \
@@ -285,13 +294,13 @@ extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
     /* Initialize the kernel space data structure and link it to the pagetable */
     space_t::set_kernel_page_directory((pgent_t *)_kernel_top_level);
 
-   space_t * kspace = get_kernel_space();
+    space_t * kspace = get_kernel_space();
 
-  kmem_resource_t *kresource = get_current_kmem_resource();
+    kmem_resource_t *kresource = get_current_kmem_resource();
 
     bool r;
     /* Map the UTCB reference page */
-    r = kspace->add_mapping((addr_t)USER_UTCB_PAGE, virt_to_phys((addr_t) arm_utcb_page),                   UTCB_AREA_PGSIZE, space_t::read_execute, false, kresource);
+    r = kspace->add_mapping((addr_t)USER_UTCB_PAGE, virt_to_phys((addr_t) arm_utcb_page),UTCB_AREA_PGSIZE, space_t::read_execute, false, kresource);
 
     init_arm_interrupts();
     init_idle_tcb();

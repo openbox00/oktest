@@ -96,9 +96,6 @@ private:
         }
 
 public:
-
-    // Predicates
-
     bool is_valid (generic_space_t * s, pgsize_e pgsize)
         {
             switch (pgsize)
@@ -119,7 +116,6 @@ public:
                 return false;
             }
         }
-
     word_t is_window (generic_space_t * s, pgsize_e pgsize)
         {
             switch (pgsize)
@@ -153,9 +149,6 @@ public:
                     /* 64k, 4k, 1k have ap0 in the same location */
                     l2.tiny.ap == (word_t)arm_l1_desc_t::rw;
         }
-
-    /* in is_readable() and is_executable(), the fields are identical for
-     * all pagesizes, hence the optimization to not check pgsize */
     bool is_readable (generic_space_t * s, pgsize_e pgsize)
         { return l1.section.ap >= (word_t)arm_l1_desc_t::ro; }
 
@@ -184,16 +177,12 @@ public:
 
     bool is_kernel (generic_space_t * s, pgsize_e pgsize)
         { return l1.section.ap <= (word_t)arm_l1_desc_t::none; }
-
-    // Retrieval
     arm_domain_t get_domain(void)
         {
             return l1.section.domain;
         }
-
     addr_t address (generic_space_t * s, pgsize_e pgsize)
         {
-            /* The address for 256M, 1M, 64k, 4k is always padded to 20 bits on ARMv5 */
             return (addr_t)(raw & ~(0xfff));
         }
 
@@ -216,25 +205,15 @@ public:
 
     word_t reference_bits (generic_space_t * s, pgsize_e pgsize, addr_t vaddr)
         { return 7; }
-
-    // Modification
-
-private:
-
-    void cpd_sync (generic_space_t * s);
-
 public:
-
     void set_domain(arm_domain_t domain)
         {
             l1.section.domain = domain;
         }
-
     void clear (generic_space_t * s, pgsize_e pgsize, bool kernel, addr_t vaddr)
         {
             clear(s, pgsize, kernel);
         }
-
     void clear (generic_space_t * s, pgsize_e pgsize, bool kernel )
         {
             raw = 0;
@@ -243,11 +222,11 @@ public:
                 sync_64k (s, 0);
             }
         }
-
+/*
     void flush (generic_space_t * s, pgsize_e pgsize, bool kernel, addr_t vaddr)
         {
         }
-
+*/
     bool make_subtree (generic_space_t * s, pgsize_e pgsize, bool kernel,
                        kmem_resource_t *current)
         {
@@ -370,7 +349,6 @@ public:
                 l1_entry.section.base_address = (word_t) paddr >> 20;
 
                 l1.raw = l1_entry.raw;
-                cpd_sync(s);
             }
             else
             {   /* size_64k */

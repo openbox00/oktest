@@ -388,10 +388,6 @@ bool space_t::remove_shared_domain(space_t *space)
         get_current_tcb()->set_error_code(EINVALID_PARAM);
         return false;
     }
-
-    /* unlink this space from the shared space */
-    (void) this->domain_unlink(space);
-
     arm_domain_t domain = space->get_domain();
 
     /* update domain masks */

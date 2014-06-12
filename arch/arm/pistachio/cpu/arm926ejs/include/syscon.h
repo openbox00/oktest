@@ -32,35 +32,19 @@
 #define C15_OP2_default         0
 
 /* CP15 - Control Register */
-#define C15_CONTROL_FIXED       0x50078
-#define C15_CONTROL_M           0x0001                  /* Memory management enable     */
 #define C15_CONTROL_A           0x0002                  /* Alignment fault enable       */
-#define C15_CONTROL_C           0x0004                  /* Data cache enable            */
-#define C15_CONTROL_B           0x0080                  /* Big endian enable            */
-#define C15_CONTROL_S           0x0100                  /* System access checks in MMU  */
-#define C15_CONTROL_R           0x0200                  /* ROM access checks in MMU     */
-#define C15_CONTROL_I           0x1000                  /* Instruction cache enable     */
+#define C15_CONTROL_M           0x0001                  /* Memory management enable     */
 #define C15_CONTROL_X           0x2000                  /* Remap interrupt vector       */
-#define C15_CONTROL_RR          0x4000                  /* Cache replacement 0 - rand, 1 - RR */
-#define C15_CONTROL_L4          0x8000                  /* ARMv4 Compatibility - Thumb  */
 
-#define     ARM_ENDIAN          0
+#define C15_CONTROL_INIT        0
 
-#define C15_CONTROL_INIT        (C15_CONTROL_FIXED | ARM_ENDIAN)
-
-#define C15_CONTROL_KERNEL      (C15_CONTROL_FIXED | C15_CONTROL_M | C15_CONTROL_C |    \
-                                 ARM_ENDIAN |  \
-                                 C15_CONTROL_I | C15_CONTROL_X)
+#define C15_CONTROL_KERNEL      (C15_CONTROL_M | C15_CONTROL_X)
 
 #define _INS_(x) #x
 #define STR(x) _INS_(x)
 #define _OUTPUT(x)  : [x] "=r" (x)
 #define _INPUT(x)  :: [x] "r" (x)
 
-#define read_cp15_register(CRn, CRm, op2, ret)                        \
-    __asm__ __volatile__ (                                            \
-        "mrc    p15, 0, "_(ret)","STR(CRn)", "STR(CRm)","STR(op2)";"  \
-        _OUTPUT(ret))
 
 #define write_cp15_register(CRn, CRm, op2, val)                     \
 {                                                                   \

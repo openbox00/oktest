@@ -275,9 +275,7 @@ public:
     thread_state_t      saved_state;
     thread_resources_t  resources;
     ringlist_t<tcb_t>   thread_list;
-#ifdef CONFIG_THREAD_NAMES
-    char                debug_name[MAX_DEBUG_NAME_LENGTH];
-#endif
+
     capid_t             saved_sent_from;
 public:
     tcb_syscall_data_t  sys_data;
@@ -288,9 +286,6 @@ public:
     /* saved interrupt stack -> only used from interrupt assembly routine */
     word_t              irq_stack;
 
-#if (defined CONFIG_L4_PROFILING)
-    profile_thread_data_t profile_data;
-#endif
 
 private:
     /* do not delete this STRUCT_END_MARKER */
@@ -493,24 +488,6 @@ INLINE u8_t tcb_t::get_cop_flags (void)
 }
 
 /**
- * clear the notify_bits
- */
-/*
-INLINE void tcb_t::clear_notify_bits()
-{
-    (void) okl4_atomic_set(&get_utcb()->notify_bits, 0);
-}
-*/
-/**
- * add bits to the notify_word
- */
-/*
-INLINE word_t tcb_t::add_notify_bits(const word_t bits)
-{
-    return okl4_atomic_or_return(&get_utcb()->notify_bits, bits);
-}
-*/
-/**
  * read value of the notify_mask
  */
 INLINE word_t tcb_t::get_notify_mask(void)
@@ -643,17 +620,13 @@ tcb_t::set_user_access(continuation_t cont)
 {
     this->runtime_flags |= (word_t)(1 << TCB_RF_USER_ACCESS);
     this->preemption_continuation = cont;
-    //okl4_atomic_compiler_barrier();
 }
 
 INLINE void
 tcb_t::clear_user_access(void)
 {
-    //okl4_atomic_compiler_barrier();
     this->runtime_flags &= ~((word_t)(1 << TCB_RF_USER_ACCESS));
     this->preemption_continuation = NULL;
-
-    //okl4_atomic_compiler_barrier();
 }
 
 INLINE bool
@@ -694,8 +667,6 @@ INLINE void
 tcb_t::set_suspended(bool new_state)
 {
     bool current = this->is_suspended();
-
-    /* Ensure that the new state is different from the old state. */
     if (current) {
         this->runtime_flags &= ~((word_t)(1 << TCB_RF_SUSPENDED));
     } else {
@@ -722,8 +693,6 @@ INLINE void generic_space_t::add_tcb(tcb_t * tcb)
     spaces_list_lock.lock();
     ENQUEUE_LIST_TAIL(tcb_t, thread_list, tcb, thread_list);
     spaces_list_lock.unlock();
-    /* Ensure TCB is in space's page directory */
-    (void)sync_kernel_space(tcb);
 }
 
 INLINE void generic_space_t::remove_tcb(tcb_t * tcb)

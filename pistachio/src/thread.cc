@@ -310,18 +310,10 @@ tcb_t::delete_tcb(kmem_resource_t *kresource)
         set_active_schedule(get_current_tcb());
     }
     scheduler->delete_tcb(this);
-
-    //resources.free(this, kresource);
-
     set_pager(NULL);
     set_exception_handler(NULL);
 
     this->set_space(NULL);
-    //dequeue_present();
-
-#if defined(CONFIG_THREAD_NAMES)
-    debug_name[0] = '\0';
-#endif
     sys_data.set_action(tcb_syscall_data_t::action_none);
     free_tcb(this);
 
@@ -393,31 +385,6 @@ tcb_t::unwind(tcb_t *partner)
         return;
     }
 }
-#if 0
-CONTINUATION_FUNCTION(handle_ipc_error)
-{
-    tcb_t * current = get_current_tcb();
-    thread_state_t saved_state = current->get_saved_state();
-
-
-    if (EXPECT_FALSE (current->resource_bits))
-        current->resources.load (current);
-
-    if (saved_state.is_running())
-    {
-        current->restore_state(3);
-        //current->return_from_user_interruption();
-    }
-    else
-    {
-        current->set_saved_state(thread_state_t::aborted); // sanity
-        TCB_SYSDATA_IPC(current)->from_tid = capid_t::nilthread();
-        current->return_from_ipc();
-    }
-
-    NOTREACHED();
-}
-#endif
 /* Assumes thread_state_lock is held by caller */
 void tcb_t::save_state (word_t mrs)
 {
