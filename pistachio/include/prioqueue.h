@@ -5,8 +5,6 @@
 #ifndef __PRIOQUEUE_H__
 #define __PRIOQUEUE_H__
 
-#include <arch/schedule.h>
-
 #define BITMAP_WORDS ((MAX_PRIO + BITS_WORD) / BITS_WORD)
 
 class prio_queue_t

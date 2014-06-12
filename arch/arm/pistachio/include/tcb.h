@@ -9,118 +9,29 @@
 
 extern stack_t __stack;
 
-
-/**
- * Return current tcb pointer.
- */
 PURE INLINE tcb_t *
 get_current_tcb (void)
 {
     return get_arm_globals()->current_tcb;
 }
 
-INLINE clist_t* get_current_clist(void) PURE;
-
-INLINE clist_t* get_current_clist(void)
-{
-    return get_arm_globals()->current_clist;
-}
-
-INLINE void tcb_t::enable_preempt_recover(continuation_t continuation)
-{
-    /* can't jump straight to the continuation as will have invalid stack pointer */
-    preemption_continuation = continuation;
-}
-
-INLINE void tcb_t::disable_preempt_recover()
-{
-    preemption_continuation = 0;
-}
-
-/* End - stack/continuation functions. */
-#include <arch/thread.h>
-#include <cpu/cache.h>
-#include <arch/resource_functions.h>
-#include <cpu/syscon.h>
 
 /* include ARM version specific implementations */
 #include <arch/ver/tcb.h>
 
-/**
- * read value of message register
- * @param index number of message register
- */
 INLINE word_t tcb_t::get_mr(word_t index)
 {
     return get_utcb()->mr[index];
 }
 
-/**
- * set the value of a message register
- * @param index number of message register
- * @param value value to set
- */
 INLINE void tcb_t::set_mr(word_t index, word_t value)
 {
     get_utcb()->mr[index] = value;
 }
 
-/**
- * read value of the acceptor
- */
 INLINE acceptor_t tcb_t::get_acceptor(void)
 {
     return get_utcb()->acceptor;
-}
-
-/**
- * set the value of the acceptor register
- * @param value value to set
- */
-INLINE void tcb_t::set_acceptor(const acceptor_t value)
-{
-    get_utcb()->acceptor = value;
-}
-
-/**
- * copies a set of message registers from one UTCB to another
- * @param dest destination TCB
- * @param start MR start index
- * @param count number of MRs to be copied
- * @return whether operation succeeded
- */
-INLINE bool tcb_t::copy_mrs(tcb_t * dest, word_t start, word_t count)
-{
-    word_t *dest_mr = &dest->get_utcb()->mr[start];
-    word_t *src_mr = &get_utcb()->mr[start];
-
-    if ((start + count) > IPC_NUM_MR)
-        return false;
-
-    /* This will always copy at least 1 register,
-     * assuming IPCs with 0 MRs are rare.
-     */
-    word_t temp1, temp2;
-    __asm__ __volatile__ (
-        "1:                             \n"
-        "ldr    %[t1],  [%[src]], #4    \n"
-        "ldr    %[t2],  [%[src]], #4    \n"
-        "subs   %[num], %[num], #2      \n"
-        "str    %[t1],  [%[dst]], #4    \n"
-        "strpl  %[t2],  [%[dst]], #4    \n"
-        "bgt    1b                      \n"
-        : [t1] "=r" (temp1),
-          [t2] "=r" (temp2),
-          [src] "+r" (src_mr),
-          [dst] "+r" (dest_mr),
-          [num] "+r" (count)
-    );
-    return true;
-}
-
-INLINE void tcb_t::set_exception_ipc(word_t num)
-{
-    arch.exc_num = num;
 }
 
 INLINE bool tcb_t::in_exception_ipc(void)
@@ -128,16 +39,6 @@ INLINE bool tcb_t::in_exception_ipc(void)
     return (resource_bits & (1UL << (word_t)EXCEPTIONFP)) || (arch.exc_num != 0);
 }
 
-INLINE void tcb_t::clear_exception_ipc(void)
-{
-    arch.exc_num = 0;
-    resources.clear_except_fp(this);
-}
-
-/**
- * set the address space a TCB belongs to
- * @param space address space the TCB will be associated with
- */
 INLINE void tcb_t::set_space(space_t * new_space)
 {
     this->space = new_space;
@@ -151,18 +52,6 @@ INLINE void tcb_t::set_space(space_t * new_space)
     }
 }
 
-/**
- * set the mutex thread handle in a UTCB
- * @param handle mutex thread handle
- */
-INLINE void tcb_t::set_mutex_thread_handle(capid_t handle)
-{
-    get_utcb()->mutex_thread_handle = handle;
-}
-
-/**
- * intialize stack for given thread
- */
 INLINE void tcb_t::init_stack()
 {
     /* Clear the exception context */
@@ -183,39 +72,18 @@ INLINE void tcb_t::init_stack()
 
     while (t < (word_t*)(context+1))
         *t++ = 0;
-
-#if CONFIG_ARM_VER <= 5
     context->pc = 1;    /* Make it look like an exception context. */
-#endif
 }
 
-
-
-/**********************************************************************
- *
- *            access functions for ex-regs'able registers
- *
- **********************************************************************/
-
-/**
- * read the user-level stack pointer
- * @return      the user-level stack pointer
- */
 INLINE addr_t tcb_t::get_user_sp()
 {
     arm_irq_context_t * context = &arch.context;
-
     return (addr_t) (context)->sp;
 }
 
-/**
- * set the user-level stack pointer
- * @param sp    new user-level stack pointer
- */
 INLINE void tcb_t::set_user_sp(addr_t sp)
 {
     arm_irq_context_t *context = &arch.context;
-
     context->sp = (word_t)sp;
 }
 
@@ -229,52 +97,6 @@ INLINE void tcb_t::set_utcb_location(word_t location)
     utcb_location = location;
 }
 
-
-/**
- * read the user-level flags (one word)
- * @return      the user-level flags
- */
-INLINE word_t tcb_t::get_user_flags (void)
-{
-    arm_irq_context_t * context = &(arch.context);
-
-    return (word_t) (context)->cpsr & ARM_USER_FLAGS_MASK;
-}
-
-/**
- * set the user-level flags
- * @param flags new user-level flags
- */
-INLINE void tcb_t::set_user_flags (const word_t flags)
-{
-    arm_irq_context_t *context = &(arch.context);
-
-    context->cpsr = (context->cpsr & ~ARM_USER_FLAGS_MASK) |
-            ((word_t)flags & ARM_USER_FLAGS_MASK);
-}
-
-/**********************************************************************
- *
- *                       preemption callback function
- *
- **********************************************************************/
-
-/**
- * set the address where preemption occured
- */
-INLINE void tcb_t::set_preempted_ip(addr_t ip)
-{
-    get_utcb()->preempted_ip = (word_t)ip;
-}
-
-INLINE addr_t tcb_t::get_preempted_ip()
-{
-    return (addr_t)get_utcb()->preempted_ip;
-}
-
-/**
- * get the preemption callback ip
- */
 INLINE addr_t tcb_t::get_preempt_callback_ip()
 {
     return (addr_t)get_utcb()->preempt_callback_ip;

@@ -3,7 +3,6 @@
 #include <tcb.h>
 #include <schedule.h>
 #include <space.h>
-#include <arch/memory.h>
 #include <config.h>
 #include <arch/hwspace.h>
 #include <kernel/generic/lib.h>
@@ -268,8 +267,6 @@ ki_create_space(kmem_resource_t * res, clist_t* clist, ki_create_space_t* args)
 
 extern "C" CONTINUATION_FUNCTION(initial_to_user);
 
-/* equivalent to scheduler_t::activate(thread_state_t::running)
- * without the smt_reschedule() */
 INLINE void set_running_and_enqueue(tcb_t * tcb)
 {
     tcb->set_state(thread_state_t::running);
@@ -302,11 +299,7 @@ static tcb_t SECTION(SEC_INIT) *
     get_current_scheduler()->set_priority(tcb, args->priority);
     tcb->set_user_ip((addr_t)args->ip);
     tcb->set_user_sp((addr_t)args->sp);
-
-    /* Set root task's thread handle in root server's MR0 */
-    tcb->set_mr(0, threadhandle(tcb->tcb_idx).get_raw());
     tcb->set_mr(1, args->mr1);
-    /* Give rootserver location of tracebuffer */
     tcb->set_mr(2, 0);
     tcb->set_mr(3, 0);
     set_running_and_enqueue(tcb);

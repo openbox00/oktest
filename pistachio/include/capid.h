@@ -4,7 +4,6 @@
 #ifndef __CAPID_H__
 #define __CAPID_H__
 
-#if defined(L4_32BIT)
 #define ANYTHREAD_RAW       0xffffffffUL
 #define WAITNOTIFY_RAW      0xfffffffeUL
 #define MYSELF_RAW          0xfffffffdUL
@@ -12,17 +11,6 @@
 #define SPECIAL_RAW_LIMIT   0xfffffffbUL
 #define INVALID_RAW         0x0fffffffUL
 
-#elif defined(L4_64BIT)
-#define ANYTHREAD_RAW       0xffffffffffffffffUL
-#define WAITNOTIFY_RAW      0xfffffffffffffffeUL
-#define MYSELF_RAW          0xfffffffffffffffdUL
-#define NILTHREAD_RAW       0xfffffffffffffffcUL
-#define SPECIAL_RAW_LIMIT   0xfffffffffffffffbUL
-#define INVALID_RAW         0x0fffffffffffffffUL
-
-#else
-#error Unknown wordsize
-#endif
 
 #define TYPE_CAP            0x0
 #define TYPE_TCB_RESOURCE   0x1
@@ -118,13 +106,6 @@ INLINE capid_t capid(word_t rawid)
 {
     capid_t t;
     t.set_raw (rawid);
-    return t;
-}
-
-INLINE capid_t threadhandle(word_t handle)
-{
-    capid_t t;
-    t = capid_t::capid(TYPE_THREAD_HANDLE, handle);
     return t;
 }
 

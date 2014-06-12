@@ -7,6 +7,7 @@
 
 /* Primary CP15 registers (CRn) */
 #define C15_control             c1
+#define C15_ttbase              c2
 #define C15_domain              c3
 
 
@@ -243,7 +244,6 @@ bool space_t::add_mapping(addr_t vaddr, addr_t paddr, pgent_t::pgsize_e size,
     bool x = (word_t)rwx & 1;
 
     pg->set_entry(this, pgsize, paddr, r, w, x, kernel, attrib);
-    arm_cache::cache_drain_write_buffer();
 
     return true;
 }

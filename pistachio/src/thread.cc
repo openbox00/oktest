@@ -137,9 +137,6 @@ bool tcb_t::activate(void (*startup_func)(), kmem_resource_t *kresource)
         return false;
     this->space_id = get_space()->get_space_id();
 
-    /* update mutex thread handle in UTCB */
-    set_mutex_thread_handle(threadhandle(this->tcb_idx));
-
     /* initialize the startup stack */
     create_startup_stack(startup_func);
     return true;

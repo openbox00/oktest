@@ -12,27 +12,14 @@
 
 INLINE void arm_fass_t::add_set(arm_domain_t domain, word_t section)
 {
-    cpd_set[domain][CPD_BITFIELD_POS(section)] |=
-            (1UL << CPD_BITFIELD_OFFSET(section));
 }
 
 INLINE void arm_fass_t::remove_set(arm_domain_t domain, word_t section)
 {
-    cpd_set[domain][CPD_BITFIELD_POS(section)] &=
-            ~(1UL << CPD_BITFIELD_OFFSET(section));
 }
 
 INLINE void arm_fass_t::activate_domain(space_t *space)
 {
-    /* Don't need to switch domains as we're still inside the kernel if
-     * !space.
-     */
-    if (EXPECT_FALSE(space == NULL)) {
-        current_domain = KERNEL_DOMAIN;
-        current_domain_mask = 0x1;
-        return;
-    }
-
     arm_domain_t target = space->get_domain();
 
     if (EXPECT_FALSE(target == INVALID_DOMAIN))
@@ -50,7 +37,6 @@ INLINE void arm_fass_t::activate_domain(space_t *space)
     current_domain_mask = space->get_domain_mask();
 
     domain_dirty |= current_domain_mask;
-//printf("d %d, m %08lx\n", current_domain, current_domain_mask);
 }
 
 INLINE void arm_fass_t::activate_other_domain(space_t *space)

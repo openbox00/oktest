@@ -1,17 +1,12 @@
 /*
  * Description: ARM space_t implementation.
  */
-
-#include <l4.h>
-#include <debug.h>                      /* for UNIMPLEMENTED    */
 #include <linear_ptab.h>
 #include <space.h>              /* space_t              */
 #include <tcb.h>
 #include <arch/pgent.h>
-#include <arch/memory.h>
 #include <config.h>
 #include <arch/fass.h>
-#include <cpu/syscon.h>
 #include <kernel/arch/special.h>
 #include <kernel/bitmap.h>
 #include <kernel/generic/lib.h>
@@ -176,8 +171,6 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
         if (page == NULL) {
             return NULL;
         }
-        arm_cache::cache_flush_d_ent(page, UTCB_AREA_PAGEBITS);
-
         if (space->add_mapping((addr_t)addr_align(utcb, UTCB_AREA_PAGESIZE),
                                virt_to_ram(page), UTCB_AREA_PGSIZE,
                                space_t::read_write, false, kresource) == false)
@@ -250,16 +243,12 @@ void generic_space_t::flush_tlb(space_t *curspace)
     if (((space_t *)this)->get_domain() != INVALID_DOMAIN)
     {
         domain_dirty = current_domain_mask;
-        arm_cache::cache_flush();
-        arm_cache::tlb_flush();
     }
 }
 
 void generic_space_t::flush_tlbent_local(space_t *curspace, addr_t vaddr, word_t log2size)
 {
     vaddr = addr_align(vaddr, 1 << log2size);
-    arm_cache::cache_flush_ent(vaddr, log2size);
-    arm_cache::tlb_flush_ent(vaddr, log2size);
 }
 
 bool generic_space_t::allocate_page_directory(kmem_resource_t *kresource)
@@ -289,17 +278,6 @@ void generic_space_t::free_page_directory(kmem_resource_t *kresource)
  */
 void generic_space_t::activate(tcb_t *tcb)
 {
-    if (this != get_kernel_space())
-    {
-        get_arm_globals()->current_clist = this->get_clist();
-        get_arm_fass()->activate_domain((space_t *)this);
-        write_cp15_register(C15_pid, C15_CRm_default, C15_OP2_default,
-                            ((space_t *)this)->get_pid() << 25);
-    }
-    else
-    {
-        get_arm_fass()->activate_domain((space_t *)NULL);
-    }
 }
 /**
  * Is this space sharing the domain of target?

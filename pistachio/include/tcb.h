@@ -651,6 +651,7 @@ void handle_ipc_error(void);
 
 extern "C" void arm_return_from_notify0(void);
 
+
 INLINE void
 tcb_t::notify(continuation_t func)
 {

@@ -138,7 +138,6 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
 
                                 /* keep TLB in sync if replacing entries */
                                 if (get_cpd()[fault_section].is_valid(space, pgent_t::size_1m)) {
-                                    arm_cache::tlb_flush();
                                 }
                                 get_cpd()[fault_section] = share_sec;
                                 return;
@@ -160,7 +159,7 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
 
                     /* translation fault in shared area */
                     if (section.is_callback()) {
-                        current->set_preempted_ip( current->get_user_ip() );
+                        //current->set_preempted_ip( current->get_user_ip() );
                         current->get_utcb()->share_fault_addr = (word_t)fault_addr;
                         current->set_user_ip( current->get_preempt_callback_ip() );
                         return;
@@ -215,7 +214,6 @@ void fass_update_pds (space_t * space, pgent_t cpg, pgent_t spg, word_t fault_se
         get_arm_fass()->clean_all(flush);
         domain_dirty |= current_domain_mask;
     } else {
-        arm_cache::tlb_flush();
     }
 }
 bool fass_sync_address (space_t * space, addr_t fault_addr, bool * is_valid)

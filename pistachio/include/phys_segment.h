@@ -6,8 +6,6 @@
 
 #include <arch/pgent.h>
 
-#include <arch/phys_segment.h>
-
 extern const word_t hw_pgshifts[];
 
 #define MIN_PAGE_SHIFT  hw_pgshifts[pgent_t::size_min]
@@ -18,20 +16,9 @@ public:
     inline bool attribs_allowed(memattrib_e attr)
     {
         word_t physattr;
-        physattr = to_physattrib(attr);
-
         return (this->base.attribs & physattr) == physattr;
     }
 
-    /**
-     * Check if a region of memory is inside the segment.
-     * addr_offset + map_size is not included in the region to be checked.
-     * @param addr_offset   the start of the region to be checked as an
-     *                      offset from the beginning of the segment.
-     * @param map_size      The size of the region to be checked.
-     * @return              true if the region is fully contained in the segment,
-     *                      false otherwise.
-     */
     inline bool is_contained(word_t addr_offset, word_t map_size)
     {
         word_t offset = addr_offset >> MIN_PAGE_SHIFT;

@@ -7,7 +7,6 @@
 
 #include <types.h>
 #include <tcb.h>
-#include <arch/schedule.h>
 #include <prioqueue.h>
 
 class scheduler_t
@@ -120,17 +119,6 @@ scheduler_t::dequeue(tcb_t * tcb)
     prio_queue.dequeue(tcb);
 }
 
-INLINE NORETURN void
-scheduler_t::fast_schedule(tcb_t * current, fast_schedule_type_e type,
-                           continuation_t continuation,
-                           flags_t flags = sched_default)
-{
-    bool can_schedule_current = (type == current_tcb_schedulable);
-    if (EXPECT_TRUE(can_schedule_current && !scheduling_invariants_violated)) {
-        ACTIVATE_CONTINUATION(continuation);
-    }
-    schedule(current, continuation, flags);
-}
 
 INLINE scheduler_t::run_e
 scheduler_t::should_schedule_thread(tcb_t * current, tcb_t * tcb,
@@ -189,14 +177,12 @@ scheduler_t::donate(tcb_t * dest_tcb, tcb_t * current,
     if (!dest_tcb->get_state().is_runnable()
             || !dest_tcb->ready_list.is_queued() || !dest_tcb->grab()) {
         schedule_lock.unlock();
-        yield(current, get_active_schedule(), continuation);
         NOTREACHED();
     }
     dequeue(dest_tcb);
     switch_from(current, continuation);
     current->release();
     enqueue(current);
-    switch_to(dest_tcb, get_active_schedule());
 }
 
 INLINE void
@@ -292,27 +278,9 @@ scheduler_t::delete_tcb(tcb_t * tcb)
 INLINE void
 scheduler_t::mark_thread_as_preempted(tcb_t * tcb)
 {
-        tcb->set_preempted_ip(tcb->get_user_ip());
         tcb->set_user_ip(tcb->get_preempt_callback_ip());
 }
 
-
-INLINE NORETURN void
-scheduler_t::context_switch(tcb_t * current, tcb_t * dest,
-        thread_state_t new_current_state, thread_state_t new_dest_state,
-        continuation_t cont)
-{
-    current->set_state(new_current_state);
-    dest->set_state(new_dest_state);
-    schedule_lock.lock();
-    scheduling_invariants_violated = true;
-    switch_from(current, cont);
-    if (current->get_state().is_runnable()) {
-        enqueue(current);
-    }
-    schedule_lock.unlock();
-    switch_to(dest, get_active_schedule());
-}
 /**********************************************************************
  *
  *                  Global function declarations
@@ -322,7 +290,6 @@ CONST INLINE scheduler_t *
 get_current_scheduler(void)
 {
     extern scheduler_t __scheduler;
-
     return &__scheduler;
 }
 

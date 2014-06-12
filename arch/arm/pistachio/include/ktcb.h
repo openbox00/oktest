@@ -36,7 +36,6 @@ public:
     /* do not delete this STRUCT_END_MARKER */
 };
 
-#if defined(CONFIG_ENABLE_FASS)
 
 #define ARCH_ENABLE_USER_ACCESS                 \
     __asm__ __volatile__ (                      \
@@ -51,6 +50,5 @@ public:
         :: "r" (0x55555555)                     \
     )
 
-#endif /* !CONFIG_ENABLE_FASS */
 
 #endif /* __GLUE__V4_ARM__KTCB_H__ */

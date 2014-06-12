@@ -15,13 +15,6 @@
         :: "r" (new_sp), "r" (new_pc)                                       \
         : "memory")
 
-INLINE addr_t tcb_t::get_user_ip()
-{
-    arm_irq_context_t * context = &arch.context;
-
-    return (addr_t)(context->pc & ~1UL);
-}
-
 INLINE void tcb_t::set_user_ip(addr_t ip)
 {
     word_t new_pc = (word_t)ip;
