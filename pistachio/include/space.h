@@ -11,7 +11,6 @@
 #include <map.h>
 #include <spaceid.h>
 #include <clist.h>
-#include <resource_ids.h>
 #include <arch/pgent.h>
 #include <phys_segment.h>
 

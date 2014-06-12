@@ -28,14 +28,4 @@ INLINE void preempt_disable()
     arm_cpu::cli();
     current->disable_preempt_recover();
 }
-
-INLINE void arch_enable_timer(void)
-{
-    soc_enable_timer();
-}
-
-INLINE void arch_disable_timer(void)
-{
-    soc_disable_timer();
-}
 #endif /* __ARM__SCHEDULE_H__ */

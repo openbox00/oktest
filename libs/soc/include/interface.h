@@ -38,8 +38,6 @@ void kernel_ref_set_referenced(tcb_h      obj,
                                soc_ref_t *ref);
 void kernel_ref_remove_referenced(soc_ref_t *ref);
 tcb_h kernel_lookup_tcb_locked(word_t cap);
-//void kernel_unlock_tcb(tcb_h);
-utcb_t *kernel_get_utcb(tcb_h obj);
 bool kernel_deliver_notify(tcb_h          handler,
                            word_t         notifybits,
                            continuation_t cont);

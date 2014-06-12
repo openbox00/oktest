@@ -6,11 +6,6 @@
 
 #include <kernel/arch/asm.h>
 #include <kernel/arch/continuation.h>
-#include "asm_prototypes.h"
-
-#ifndef __TCB_H__
-#error not for stand-alone inclusion
-#endif
 
 extern stack_t __stack;
 
@@ -43,8 +38,6 @@ INLINE void tcb_t::disable_preempt_recover()
 }
 
 /* End - stack/continuation functions. */
-
-#include <syscalls.h>           /* for sys_ipc */
 #include <arch/thread.h>
 #include <cpu/cache.h>
 #include <arch/resource_functions.h>
@@ -52,12 +45,6 @@ INLINE void tcb_t::disable_preempt_recover()
 
 /* include ARM version specific implementations */
 #include <arch/ver/tcb.h>
-
-INLINE word_t tcb_t::set_tls(word_t *mr)
-{
-    get_utcb()->kernel_reserved[0] = mr[0];
-    return EOK;
-}
 
 /**
  * read value of message register
@@ -113,7 +100,6 @@ INLINE bool tcb_t::copy_mrs(tcb_t * dest, word_t start, word_t count)
     /* This will always copy at least 1 register,
      * assuming IPCs with 0 MRs are rare.
      */
-#if defined(__GNUC__)
     word_t temp1, temp2;
     __asm__ __volatile__ (
         "1:                             \n"
@@ -129,11 +115,6 @@ INLINE bool tcb_t::copy_mrs(tcb_t * dest, word_t start, word_t count)
           [dst] "+r" (dest_mr),
           [num] "+r" (count)
     );
-#else
-    do {
-            *dest_mr++ = *src_mr++;
-    } while(--count > 0);
-#endif
     return true;
 }
 
@@ -144,11 +125,6 @@ INLINE void tcb_t::set_exception_ipc(word_t num)
 
 INLINE bool tcb_t::in_exception_ipc(void)
 {
-    /*
-     * EXCEPTIONFP indicates the thread is doing a syscall exception ipc, this
-     * function returns true if the thread is either doing a syscall exception
-     * ipc, or a general exception ipc.
-     */
     return (resource_bits & (1UL << (word_t)EXCEPTIONFP)) || (arch.exc_num != 0);
 }
 
@@ -182,15 +158,6 @@ INLINE void tcb_t::set_space(space_t * new_space)
 INLINE void tcb_t::set_mutex_thread_handle(capid_t handle)
 {
     get_utcb()->mutex_thread_handle = handle;
-}
-
-/*
- * Return back to user_land when an IPC is aborted
- * We short circuit the restoration of any saved registers/state
- */
-INLINE void tcb_t::return_from_ipc (void)
-{
-    ACTIVATE_CONTINUATION(vector_ipc_syscall_return);
 }
 
 /**

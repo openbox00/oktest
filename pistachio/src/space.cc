@@ -9,9 +9,7 @@
 #include <space.h>
 #include <tcb.h>
 #include <schedule.h>
-#include <syscalls.h>
 #include <threadstate.h>
-#include <arch/syscalls.h>
 #include <kernel/arch/special.h>
 #include <kernel/bitmap.h>
 #include <linear_ptab.h>
@@ -48,12 +46,10 @@ space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clis
 
     space_t * space = (space_t *) res->alloc(kmem_group_space, true);
     if (EXPECT_FALSE(!space)) {
-        get_current_tcb()->set_error_code(ENO_MEM);
         return NULL;
     }
     if (!space->allocate_page_directory(res)) {
         res->free(kmem_group_space, space);
-        get_current_tcb()->set_error_code(ENO_MEM);
         return NULL;
     }
 

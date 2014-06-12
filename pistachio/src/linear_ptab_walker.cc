@@ -51,7 +51,6 @@ bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
                 (t_num < page_shift(pgent_t::size_min))
                 ))
     {
-        get_current_tcb ()->set_error_code (EINVALID_PARAM);
         return false;
     }
 
@@ -233,7 +232,6 @@ map_next_pgentry:
 
 map_fpage_fail:
     end_update ();
-    get_current_tcb ()->set_error_code (ENO_MEM);
     return false;
 }
 

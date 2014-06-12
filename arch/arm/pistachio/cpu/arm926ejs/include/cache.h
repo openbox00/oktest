@@ -66,20 +66,6 @@ public:
         cache_flush_d();
         cache_flush_i();
     }
-#if 0
-    static inline void cache_flush(word_t attr)
-    {
-        if (attr & CACHE_ATTRIB_MASK_I) /* I-cache */
-        {
-            cache_flush_i();
-        }
-        if (attr & CACHE_ATTRIB_MASK_D) /* D-cache */
-        {
-            cache_flush_d();
-        }
-    }
-#endif
-#if defined(__GNUC__)
     static inline void cache_flush_d(void)
     {
         /* test - clean and invalidate */
@@ -91,18 +77,13 @@ public:
 
         cache_drain_write_buffer();
     }
-#else
-    static void cache_flush_d(void);
-#endif
 
     static inline void cache_flush_i(void)
     {
         word_t zero = 0;
         __asm__ __volatile__ (
              "  mcr     p15, 0, "_(zero)", c7, c5, 0    ;"      /* Flush I cache */
-#if defined(__GNUC__)
             :: [zero] "r" (zero)
-#endif
         );
     }
 
@@ -149,11 +130,9 @@ public:
             "    mov     "_(vaddr)",     #0                             ;"
             /* drain write buffer */
             "    mcr     p15, 0, "_(vaddr)", c7, c10, 4                 ;"
-#if defined(__GNUC__)
             : [vaddr] "+r" (vaddr)
             : [size] "r" (size), [ASM_CACHE_LINE_SIZE] "r" (DCACHE_LINE_SIZE)
             : "r1", "memory"
-#endif
             );
     }
 
@@ -171,11 +150,9 @@ public:
             "    mov     "_(vaddr)",     #0                           ;"
             /* drain write buffer */
             "    mcr     p15, 0, "_(vaddr)", c7, c10, 4               ;"
-#if defined(__GNUC__)
             : [vaddr] "+r" (vaddr)
             : [size] "r" (size), [ASM_CACHE_LINE_SIZE] "r" (DCACHE_LINE_SIZE)
             : "r1", "memory"
-#endif
             );
     }
 
@@ -193,11 +170,9 @@ public:
             "    mov     "_(vaddr)",     #0                             ;"
             /* drain write buffer */
             "    mcr     p15, 0, "_(vaddr)", c7, c10, 4                 ;"
-#if defined(__GNUC__)
             : [vaddr] "+r" (vaddr)
             : [size] "r" (size), [ASM_CACHE_LINE_SIZE] "r" (DCACHE_LINE_SIZE)
             : "r1", "memory"
-#endif
             );
     }
 
@@ -215,11 +190,9 @@ public:
             "    mov     "_(vaddr)",     #0                           ;"
             /* drain write buffer */
             "    mcr     p15, 0, "_(vaddr)", c7, c10, 4               ;"
-#if defined(__GNUC__)
             : [vaddr] "+r" (vaddr)
             : [size] "r" (size), [ASM_CACHE_LINE_SIZE] "r" (DCACHE_LINE_SIZE)
             : "r1", "memory"
-#endif
             );
     }
 
@@ -235,11 +208,9 @@ public:
             "    cmp     r1,     "_(vaddr)"                           ;"
             "    bhi     "LOOP_TARGET"                                ;"
             "    mov     "_(vaddr)",     #0                           ;"
-#if defined(__GNUC__)
             :[vaddr]  "+r" (vaddr)
             : [size] "r" (size), [ASM_CACHE_LINE_SIZE] "r" (DCACHE_LINE_SIZE)
             : "r1", "memory"
-#endif
             );
     }
 
@@ -249,28 +220,6 @@ public:
         size = ((size + DCACHE_LINE_SIZE-1) + ((word_t)vaddr & (DCACHE_LINE_SIZE-1)))
             & (~(DCACHE_LINE_SIZE-1));
         vaddr = (addr_t)((word_t)vaddr & (~(DCACHE_LINE_SIZE-1)));               // align addresses
-#if 0
-        if (attr & CACHE_ATTRIB_MASK_D) /* D-cache */
-        {
-            if ((attr & CACHE_ATTRIB_OP_CLEAN_INVAL) == CACHE_ATTRIB_OP_CLEAN_INVAL)
-            {
-                cache_clean_invalidate_dlines(vaddr, size);
-            }
-            else if ((attr & CACHE_ATTRIB_OP_INVAL))
-            {
-                cache_invalidate_dlines(vaddr, size);
-            }
-            else if ((attr & CACHE_ATTRIB_OP_CLEAN))
-            {
-                cache_clean_dlines(vaddr, size);
-            }
-        }
-
-        if ((attr & CACHE_ATTRIB_INVAL_I) == CACHE_ATTRIB_INVAL_I) /* I-cache - invalidate */
-        {
-            cache_invalidate_ilines(vaddr, size);
-        }
-#endif
     }
 
     static inline void tlb_flush(void)
@@ -278,9 +227,7 @@ public:
         word_t zero = 0;
         __asm__ __volatile__ (
             "   mcr     p15, 0, "_(zero)", c8, c7, 0   ;"      /* flush I+D TLB */
-#if defined(__GNUC__)
             :: [zero] "r" (zero)
-#endif
         );
     }
 
@@ -291,7 +238,6 @@ public:
 
         for (word_t i=0; i < (1UL << log2size); i += ARM_PAGE_SIZE)
         {
-#if defined(__GNUC__)
             __asm__ __volatile__ (
                 /* Invalidate I TLB entry */
                 "    mcr     p15, 0, "_(a)", c8, c5, 1    ;"
@@ -299,13 +245,6 @@ public:
                 "    mcr     p15, 0, "_(a)", c8, c6, 1    ;"
             :: [a] "r" (a)
             );
-#elif defined(__RVCT_GNU__)
-            __asm__ __volatile__ {
-                    mcr     p15, 0, a, c8, c5, 1
-                    mcr     p15, 0, a, c8, c6, 1
-            }
-#else
-#endif
             a += ARM_PAGE_SIZE;
         }
     }
@@ -318,9 +257,7 @@ public:
             "   mrc    p15, 0, r0, c1, c0, 0     ;"     // Get the control register
             "   orr    r0, r0, #0x1004           ;"     // Set bit 12 - the I & D bit
             "   mcr    p15, 0, r0, c1, c0, 0     ;"     // Set the control register
-#if defined(__GNUC__)
             ::: "r0"
-#endif
         );
     }
 
@@ -328,9 +265,7 @@ public:
     {
         __asm__ __volatile__ (
             "   mcr p15, 0, "_(target)", c7, c6, 1 ;"
-#if defined(__GNUC__)
         :: [target] "r" (target)
-#endif
         );
     }
 
@@ -339,9 +274,7 @@ public:
         word_t zero = 0;
         __asm__ __volatile__ (
             "   mcr     p15, 0, "_(zero)", c7, c5, 0   ;"
-#if defined(__GNUC__)
             :: [zero] "r" (zero)
-#endif
         );
     }
 
@@ -350,9 +283,7 @@ public:
         word_t zero = 0;
         __asm__ __volatile__ (
             "   mcr     p15, 0, "_(zero)", c7, c6, 0   ;"
-#if defined(__GNUC__)
             :: [zero] "r" (zero)
-#endif
         );
     }
 
@@ -360,9 +291,7 @@ public:
     {
         __asm__ __volatile__ (
             "   mcr p15, 0, "_(target)", c7, c10, 1 ;"
-#if defined(__GNUC__)
         :: [target] "r" (target)
-#endif
         );
     }
 
@@ -371,9 +300,7 @@ public:
         word_t zero = 0;
         __asm__ __volatile__ (
             "   mcr     p15, 0, "_(zero)", c7, c10, 4   ;"
-#if defined(__GNUC__)
             :: [zero] "r" (zero)
-#endif
         );
     }
 
@@ -381,9 +308,7 @@ public:
     {
         __asm__ __volatile__ (
                 "   mcr     p15, 0, " _(vaddr) ", c7, c13, 1"   /* prefetch icache line */
-#if defined(__GNUC__)
                 :: [vaddr] "r" (vaddr)
-#endif
         );
     }
 
@@ -398,10 +323,8 @@ public:
                 "   mrc     p15, 0, r0, c10, c0, 0          ;"  /* Get lockdown register    */
                 "   bic     r0, r0, #1                      ;"  /* Clear preserve bit       */
                 "   mcr     p15, 0, r0, c10, c0, 0          ;"  /* Write lockdown register  */
-#if defined(__GNUC__)
                 :: [vaddr] "r" (vaddr)
                 : "r0"
-#endif
         );
     }
 
@@ -411,9 +334,7 @@ public:
 
         __asm__ __volatile__ (
                 "       mcr     p15, 0, " _(unlock) ", c9, c0, 1"       /* Set the value of c9 (i-cache lockdown register)      */
-#if defined(__GNUC__)
                 :: [unlock] "r" (unlock)
-#endif
         );
     }
 
@@ -423,9 +344,7 @@ public:
 
         __asm__ __volatile__ (
                 "       mcr     p15, 0, " _(unlock) ", c9, c0, 0"       /* Set the value of c9 (d-cache lockdown register)      */
-#if defined(__GNUC__)
                 :: [unlock] "r" (unlock)
-#endif
         );
     }
 
@@ -453,11 +372,9 @@ public:
                 "       mrc     p15, 0, " _(lock) ", c9, c0, 1          ;"      /* Save the value of c9 (i-cache lockdown register)     */
                 "       nop                                             ;"
                 "       mcr     p15, 0, " _(save) ", c9, c0, 1          ;"      /* Restore the value of c9 (i-cache lockdown register)  */
-#if defined(__GNUC__)
                 : [save] "+r" (save), [lock] "+r" (lock),
                 [way_bit] "+r" (way_bit), [vstart] "+r" (vstart),
                 [vend] "+r" (vend)
-#endif
                 );
     }
 
@@ -485,11 +402,9 @@ public:
                 "       mrc     p15, 0, " _(lock) ", c9, c0, 0          ;"      /* Save the value of c9 (d-cache lockdown register)     */
                 "       nop                                             ;"
                 "       mcr     p15, 0, " _(save) ", c9, c0, 0          ;"      /* Restore the value of c9 (d-cache lockdown register)  */
-#if defined(__GNUC__)
                 : [save] "+r" (save), [lock] "+r" (lock),
                 [way_bit] "+r" (way_bit), [vstart] "+r" (vstart),
                 [vend] "+r" (vend)
-#endif
                 );
     }
     
@@ -503,16 +418,13 @@ public:
                 "   add         " _(vaddr) ", " _(vaddr) ", " _(ASM_CACHE_LINE_SIZE) "  ;"
                 "   subs        " _(nbytes) ", " _(nbytes) ", " _(ASM_CACHE_LINE_SIZE) ";"
                 "   bgt         " LOOP_TARGET "                                     ;"
-#if defined(__GNUC__)
                 :: [vaddr] "r" (vaddr), [nbytes] "r" (nbytes),
                  [ASM_CACHE_LINE_SIZE] "i" (DCACHE_LINE_SIZE)
-#endif
         );
     }
 
     static inline void cache_for_rewrite_bytecode(addr_t vaddr, word_t nbytes)
     {
-        // Align the address and byte count to cache line boundary
         nbytes += (word_t)vaddr & CACHE_LINE_MASK;
         vaddr = (addr_t) ((word_t)vaddr & ~CACHE_LINE_MASK);
 

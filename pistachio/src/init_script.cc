@@ -289,8 +289,6 @@ static tcb_t SECTION(SEC_INIT) *
     }
 
     tcb->init();
-    tcb->set_pager(NULL);
-    tcb->set_exception_handler(NULL);
 
     /* set the space */
     tcb->set_space(space);
