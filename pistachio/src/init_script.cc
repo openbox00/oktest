@@ -231,10 +231,7 @@ ki_create_thread_handles(ki_create_thread_handles_t *args)
 static clist_t SECTION(SEC_INIT)*
 ki_create_clist(kmem_resource_t *res, ki_create_clist_t *args)
 {
-    clist_t *clist = create_clist(res, args->id, args->max_caps);
-    if (!clist) {
-    }
-
+    clist_t *clist;
     return clist;
 }
 
@@ -277,14 +274,8 @@ static tcb_t SECTION(SEC_INIT) *
     ki_create_thread(space_t *space, ki_create_thread_t *args,
                      kmem_resource_t *res)
 {
-    capid_t dest_tid = capid_t::capid(TYPE_CAP, args->cap_slot);
+    capid_t dest_tid;
     tcb_t *tcb = allocate_tcb(dest_tid, res);
-    if (!tcb) {
-    }
-
-    if (!space->get_clist()->add_thread_cap(dest_tid, tcb)) {
-    }
-
     tcb->init();
 
     /* set the space */

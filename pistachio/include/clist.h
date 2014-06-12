@@ -78,16 +78,6 @@ public:
     cap_t* lookup_cap(capid_t tid);
 
     /**
-     * Check if cap number is valid in this clist
-     *
-     * @param tid   Thread-id of thread being looked up.
-     * @return true if thread-id in range, false if not in range
-     */
-    bool is_valid(capid_t tid) {
-        return (tid.get_index() > max_id) ? false : true;
-    }
-
-    /**
      * Add a thread cap to the clist.
      *
      * @pre is_valid(tid)

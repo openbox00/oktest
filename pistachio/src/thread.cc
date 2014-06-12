@@ -58,20 +58,6 @@ allocate_tcb(capid_t tid, kmem_resource_t *kresource)
         return NULL;
     }
 }
-#if 0
-void
-free_tcb(tcb_t *tcb)
-{
-    /* Add the tcb to the head of the free list */
-    extern word_t free_tcb_idx;
-    extern tcb_t** thread_handle_array;
-
-    thread_handle_array[tcb->tcb_idx] = (tcb_t *)free_tcb_idx;
-    free_tcb_idx = tcb->tcb_idx;
-    /* Free tcb */
-    get_current_kmem_resource()->free(kmem_group_tcb, tcb);
-}
-#endif
 /**
  * Initialize a new thread
  */
@@ -160,7 +146,6 @@ void
 tcb_t::restore_state(word_t mrs)
 {
     thread_state_t saved_state = get_saved_state();
-    scheduler_t * scheduler = get_current_scheduler();
 
     for (word_t i = 0; i < mrs; i++) {
         set_mr(i, TCB_SYSDATA_IPC(this)->saved_mr[i]);
@@ -170,21 +155,7 @@ tcb_t::restore_state(word_t mrs)
     sent_from = saved_sent_from;
     partner = saved_partner;
 
-    if (get_state().is_runnable()) {
-        if (saved_state.is_runnable()) {
-            scheduler->update_active_state(this, saved_state);
-        } else {
-            scheduler->deactivate(this, saved_state);
-        }
-    } else {
-        if (saved_state.is_runnable()) {
-            scheduler->activate(this, saved_state);
-        } else {
-            scheduler->update_inactive_state(this, saved_state);
-        }
-    }
     set_error_code(TCB_SYSDATA_IPC(this)->saved_error);
-
     set_saved_partner(NULL);
     set_saved_state(thread_state_t::aborted);
 }

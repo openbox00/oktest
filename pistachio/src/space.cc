@@ -32,12 +32,8 @@ spaceid_lookup_t space_lookup;
 void SECTION(SEC_INIT) init_spaceids(word_t max_spaceids,
                                      kmem_resource_t *kresource)
 {
-
     void * new_table;
-
-    new_table = kresource->alloc(kmem_group_spaceids,
-                                 sizeof(space_t*) * max_spaceids, true);
-
+    new_table = kresource->alloc(kmem_group_spaceids, sizeof(space_t*) * max_spaceids, true);
     space_lookup.init(new_table, max_spaceids);
 }
 
@@ -100,8 +96,6 @@ bool SECTION(SEC_INIT)
         fpg.set_rwx(rwx);
 
         phys_desc.set_base(paddr);
-        phys_desc.set_attributes(attr);
-
         get_current_tcb()->sys_data.set_action
             (tcb_syscall_data_t::action_map_control);
         if (!space->map_fpage(phys_desc, fpg, kresource))

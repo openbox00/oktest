@@ -65,7 +65,6 @@
         BEGIN_PROC_TRAPS(arm_common_return)
         mov     r0,     #ARM_GLOBAL_BASE
         ldr     r0,     [r0, #OFS_GLOBAL_CURRENT_TCB]
-        SET_USER_DACR
         LOAD_CONTEXT_INTO_SP
         /* LOAD_CONTEXT_INTO_SP will have z flag set if return to user */
         ldreq   r1,     [r0, #OFS_TCB_POST_SYSCALL_CALLBACK]
@@ -152,11 +151,6 @@
         /* Load saved user's program counter */
         ldr     lr,     tmp_r14
 
-        /* Even if the fault came from the kernel, it won't be on the current
-         * stack as KTCBs are faulted on for allocation prior to the use of
-         * their stacks
-         */
-
         SAVE_ALL_INT_TMP_LINKED_DACR    /* Macro sets r12 */
 
         /* Pointer to base of current arm_irq_context_t record */
@@ -191,9 +185,6 @@
          * to userspace, perform that work now. r0 is loaded to current_tcb by
          * LOAD_CONTEXT_INTO_SP macro. */
         ldr     r1,     [r0, #OFS_TCB_POST_SYSCALL_CALLBACK]
-
-        SET_USER_DACR
-
         /* If there is a pointer in post_syscall_callback, we need to
          * run it before returning from this exception. Set 'gt' if
          * we need to do the callback. */

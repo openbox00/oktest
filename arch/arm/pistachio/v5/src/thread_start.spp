@@ -12,7 +12,6 @@
 
         /* Initial jump to a user thread */
         BEGIN_PROC(initial_to_user)
-        SET_USER_DACR
         RESTORE_ALL
         subs    pc,     lr,     #1
         END_PROC(initial_to_user)

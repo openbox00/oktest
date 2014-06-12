@@ -62,7 +62,6 @@ public:
     /* mapping */
     bool map_fpage(phys_desc_t base, fpage_t dest_fp, kmem_resource_t *kresource);
     void unmap_fpage(fpage_t fpage, bool unmap_all, kmem_resource_t *kresource);
-    void read_fpage(fpage_t fpage, phys_desc_t *phys, perm_desc_t *perm);
     bool lookup_mapping (addr_t vaddr, pgent_t ** r_pg, pgent_t::pgsize_e * r_size);
 
     /* tcb management */

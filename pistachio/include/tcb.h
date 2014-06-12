@@ -548,7 +548,6 @@ INLINE void init_idle_tcb()
     extern tcb_t* __idle_tcb[];
     int index = 0;
     __idle_tcb[index] = (tcb_t *)get_current_kmem_resource()->alloc(kmem_group_tcb, true);
-    __idle_tcb[index]->tcb_idx = INVALID_RAW;
 }
 
 tcb_t * get_idle_tcb(cpu_context_t context) PURE;

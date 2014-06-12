@@ -2,7 +2,6 @@
  * Description:   ARM specific initialization code
  */
 #include <schedule.h>
-#include <queueing.h>
 #include <linear_ptab.h>
 
 /* Primary CP15 registers (CRn) */
@@ -117,11 +116,7 @@ scheduler_t::schedule(tcb_t * current, continuation_t continuation,
         if (current->effective_prio > max_prio ||
                 (!(flags & sched_round_robin)
                         && current->effective_prio == max_prio)) {
-            schedule_lock.unlock();
             ACTIVATE_CONTINUATION(continuation);
-        }
-        if (flags & preempting_thread) {
-            mark_thread_as_preempted(current);
         }
     }
     tcb_t *next;

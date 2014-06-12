@@ -4,33 +4,16 @@
 #ifndef __GENERIC__LINEAR_PTAB_WALKER_CC__
 #define __GENERIC__LINEAR_PTAB_WALKER_CC__
 
-#include <l4.h>
-#include <arch/pgent.h>
-#include <fpage.h>
 #include <tcb.h>
-#include <space.h>
-#include <schedule.h>
-
 #include <linear_ptab.h>
 
 const word_t hw_pgshifts[] = HW_PGSHIFTS;
 
-class mapnode_t;
 
 static inline addr_t address (fpage_t fp, word_t size) PURE;
 static inline addr_t address (fpage_t fp, word_t size)
 {
     return (addr_t) (fp.raw & ~((1UL << size) - 1));
-}
-
-static inline word_t dbg_pgsize (word_t sz)
-{
-    return (sz >= GB (1) ? sz >> 30 : sz >= MB (1) ? sz >> 20 : sz >> 10);
-}
-
-static inline char dbg_szname (word_t sz)
-{
-    return (sz >= GB (1) ? 'G' : sz >= MB (1) ? 'M' : 'K');
 }
 
 bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
@@ -46,14 +29,6 @@ bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
     word_t r_tnum[pgent_t::size_max];
 
     u64_t phys = base.get_base();
-    if (EXPECT_FALSE(
-                (phys & (((u64_t)1 << t_num)-1)) ||
-                (t_num < page_shift(pgent_t::size_min))
-                ))
-    {
-        return false;
-    }
-
     t_addr = address (dest_fp, t_num);
 
     if (t_num > page_shift(pgent_t::size_max+1))
@@ -62,7 +37,6 @@ bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
     memattrib_e page_attributes = (memattrib_e)base.get_attributes();
     phys &= ~(((u64_t)1 << t_num)-1);
     p_addr = (addr_t)(word_t)phys;
-    for (pgsize = pgent_t::size_max; page_shift(pgsize) > t_num; pgsize --) { }
 
     t_num = 1UL << (t_num - page_shift(pgsize));
     t_size =  pgent_t::size_max;
@@ -117,10 +91,7 @@ map_next_level:
 
             while (num > 0)
             {
-                if (! tpg->is_valid (this, t_size))
-                {
-                }
-                else if (tpg->is_subtree (this, t_size))
+                if (tpg->is_subtree (this, t_size))
                 {
                     t_size--;
 
@@ -199,10 +170,6 @@ map_recurse_down:
                     dest_fp.is_read(), dest_fp.is_write(),
                     dest_fp.is_execute(), false,
                     page_attributes);
-
-            if (EXPECT_FALSE(valid && !flush))
-            {
-            }
         }
 
 map_next_pgentry:
@@ -234,36 +201,4 @@ map_fpage_fail:
     end_update ();
     return false;
 }
-
-void generic_space_t::read_fpage(fpage_t fpage, phys_desc_t *base, perm_desc_t *perm)
-{
-    word_t num = fpage.get_size_log2 ();
-    addr_t vaddr = address (fpage, num);
-    word_t rwx, RWX;
-    pgent_t::pgsize_e pgsize;
-    pgent_t * pg;
-    bool exists;
-
-    exists = true;
-
-    base->clear();
-    perm->clear();
-
-    if (exists)
-    {
-        base->set_base((word_t)pg->address(this, pgsize));
-        base->set_attributes((word_t)pg->get_attributes(this, pgsize));
-
-        rwx = (pg->is_readable(this, pgsize) << 2) |
-              (pg->is_writable(this, pgsize) << 1) |
-              (pg->is_executable(this, pgsize) << 0);
-
-        RWX = pg->reference_bits(this, pgsize, vaddr);
-
-        perm->set_perms(rwx);
-        perm->set_size(page_shift(pgsize));
-        perm->set_reference(RWX);
-    }
-}
-
 #endif /* !__GENERIC__LINEAR_PTAB_WALKER_CC__ */
