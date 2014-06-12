@@ -33,9 +33,6 @@ class tcb_t
 public:
     bool activate(void (*startup_func)(), kmem_resource_t *kresource);
     bool create_kernel_thread(utcb_t * utcb);
-    void delete_tcb(kmem_resource_t *kresource);
-    void cancel_ipcs();
-    bool release_mutexes();
 
     bool migrate_to_domain(cpu_context_t context);
 
@@ -49,8 +46,6 @@ public:
 
     void set_error_code (word_t err);
     word_t get_error_code (void);
-private:
-    void set_state(thread_state_t state);
 public:
     thread_state_t get_state();
     void initialise_state(thread_state_t state);
@@ -76,13 +71,7 @@ public:
     word_t get_mr(word_t index);
     void set_mr(word_t index, word_t value);
     bool copy_mrs(tcb_t * dest, word_t start, word_t count);
-    void do_ipc(tcb_t *to_tcb, tcb_t *from_tcb,
-            continuation_t continuation) NORETURN;
 
-    void send_pagefault_ipc(addr_t addr, addr_t ip, space_t::access_e access,
-            continuation_t continuation) NORETURN;
-    void return_from_ipc(void) NORETURN;
-    void return_from_user_interruption(void) NORETURN;
     void notify(continuation_t continuation);
     addr_t get_user_ip();
     addr_t get_user_sp();
@@ -111,11 +100,7 @@ public:
     void set_utcb(utcb_t *new_utcb);
 
 public:
-    void set_pager(tcb_t *tcb);
-    void set_exception_handler(tcb_t *tcb);
     void set_user_handle(const word_t handle);
-    void set_user_flags(const word_t flags);
-    void set_acceptor(const acceptor_t acceptor);
 
     tcb_t * get_pager();
     tcb_t * get_exception_handler();
@@ -206,12 +191,7 @@ private:
     thread_state_t      thread_state;
     tcb_t *             partner;
 
-public:
-    /** End-point for this thread's IPC operations. */
-    endpoint_t          end_point;
 
-private:
-    ref_t               exception_handler;
 
 public:
     resource_bits_t     resource_bits;
@@ -222,15 +202,6 @@ public:
 
     arch_ktcb_t         arch;
 
-    /**
-     * @brief A series of 1 bit flags.
-     *
-     * Two currently in use - "suspended" and "user_access"
-     *
-     * Only ever use via accessor functions.
-     * @note: A BITFIELDX won't work here due to problems in the generated
-     *        file tcb_layout.cc
-     */
     word_t runtime_flags;
 
 #define TCB_RF_SUSPENDED   0
@@ -286,13 +257,6 @@ private:
     /* do not delete this STRUCT_END_MARKER */
 
     /* class friends */
-    friend void dump_tcb(tcb_t *);
-    friend void handle_ipc_error (void);
-    friend class thread_resources_t;
-    friend class scheduler_t;
-    friend void switch_to(tcb_t *, tcb_t *);
-    friend void switch_from(tcb_t *, continuation_t);
-    friend void set_running_and_enqueue(tcb_t * tcb);
 };
 
 /* union to allow allocation of kernel stacks */
@@ -381,11 +345,6 @@ INLINE cpu_context_t tcb_t::get_context()
     return 0;
 }
 
-INLINE void tcb_t::set_state(thread_state_t state)
-{
-    this->thread_state.state = state.state;
-}
-
 INLINE void tcb_t::initialise_state(thread_state_t state)
 {
     this->thread_state.state = state.state;
@@ -396,26 +355,6 @@ INLINE thread_state_t tcb_t::get_state()
     return thread_state;
 }
 
-INLINE void tcb_t::set_partner(tcb_t *tcb)
-{
-    this->partner = tcb;
-}
-
-INLINE bool tcb_t::is_partner_valid()
-{
-    return true;
-}
-
-INLINE tcb_t * tcb_t::get_partner()
-{
-    return this->partner;
-}
-
-INLINE endpoint_t *
-tcb_t::get_endpoint(void)
-{
-    return &(this->end_point);
-}
 
 INLINE word_t tcb_t::get_user_handle()
 {
@@ -601,7 +540,6 @@ tcb_t::user_access_continuation(void)
  *
  **********************************************************************/
 
-void handle_ipc_error(void);
 
 extern "C" void arm_return_from_notify0(void);
 

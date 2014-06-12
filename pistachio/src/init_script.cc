@@ -265,7 +265,6 @@ extern "C" CONTINUATION_FUNCTION(initial_to_user);
 
 INLINE void set_running_and_enqueue(tcb_t * tcb)
 {
-    tcb->set_state(thread_state_t::running);
     get_current_scheduler()->enqueue(tcb);
 }
 

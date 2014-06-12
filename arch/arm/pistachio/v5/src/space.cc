@@ -23,7 +23,6 @@ void SECTION(".init") init_kernel_space()
 {
     space_t * kspace = get_kernel_space();
     kspace->init_kernel_mappings();
-    get_arm_fass()->init();
     kspace->enqueue_spaces();
 }
 
@@ -32,44 +31,17 @@ void SECTION(".init") init_kernel_space()
  */
 word_t space_t::space_control_window(word_t ctrl)
 {
-    space_t * dest;
-    spaceid_t dest_sid;
-    bool r = false;
-    dest_sid.set_raw(get_current_tcb()->get_mr(0));
-    dest = get_current_space()->lookup_space(dest_sid);
-    if (dest == NULL)
-    {
-        return 1;
-    }
-
-    if (ctrl == L4_SPACE_RESOURCES_WINDOW_MANAGE) {
-        r = this->add_shared_domain(dest, true);
-    } else if (ctrl == L4_SPACE_RESOURCES_WINDOW_GRANT) {
-        r = this->add_shared_domain(dest, false);
-    } else if (ctrl == L4_SPACE_RESOURCES_WINDOW_REVOKE) {
-        r = this->remove_shared_domain(dest);
-    } else {
-        return 1;
-    }
-    return !r;
+    return 1;
 }
 
-/**
- * initialize THE kernel space
- * @see get_kernel_space()
- */
 void SECTION(".init") generic_space_t::init_kernel_mappings()
 {
 }
 
-/**
- * initialize a space
- *
- * @param utcb_page     fpage describing location of UTCB area
- */
 bool generic_space_t::init (fpage_t utcb_page,
                             kmem_resource_t *kresource)
 {
+
     ((space_t *)this)->set_domain(INVALID_DOMAIN);
 
     /* initialize UTCB pgentry in space */
@@ -97,27 +69,6 @@ bool generic_space_t::init (fpage_t utcb_page,
  */
 void generic_space_t::arch_free(kmem_resource_t *kresource)
 {
-    word_t section;
-
-    section = ( UTCB_AREA_START/ARM_SECTION_SIZE + (get_space_id().get_spaceno()) );
-
-    pgent_t entry, *pg;
-    entry.raw = 0;
-    /* We need to clear the space_t pointer in the cpd section */
-    get_cpd()[section] = entry;
-
-    pg = ((space_t *)this)->pgent_utcb();
-    if (pg->raw) {
-        pg->remove_subtree (this, pgent_t::size_1m, true, kresource);
-    }
-
-    space_t * spc = (space_t*)this;
-
-    /* Clean the domain if needed */
-    if (spc->get_domain() != INVALID_DOMAIN)
-        get_arm_fass()->free_domain(spc);
-
-    spc->flush_sharing_on_delete();
 }
 
 
@@ -197,53 +148,11 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
  */
 void generic_space_t::free_utcb(utcb_t * utcb)
 {
-    if (utcb == NULL) {
-        return;
-    }
-    /* We have to free the thread's UTCB */
-    space_t *space = (space_t *)this;
-
-    word_t offset, utcb_num;
-
-    offset = (word_t)utcb - UTCB_AREA_START -
-            (space->get_space_id().get_spaceno() * ARM_SECTION_SIZE);
-    utcb_num = offset >> UTCB_BITS;
-
-    /* Free this utcb */
-    bitmap_set(space->get_utcb_bitmap(), utcb_num);
-
-    /* Search to see if all UTCBs in this page are now free */
-    offset = (offset & (~(UTCB_AREA_PAGESIZE-1)));
-    utcb_num = offset >> UTCB_BITS;
-
-    if (EXPECT_TRUE(!bitmap_israngeset(space->get_utcb_bitmap(), utcb_num,
-                utcb_num + (UTCB_AREA_PAGESIZE>>UTCB_BITS) - 1)))
-    {
-        return;
-    }
-
-    pgent_t *pg;
-    space_t *mapspace = space;
-
-    pg = mapspace->pgent_utcb();
-    if (pg->is_valid(mapspace, pgent_t::size_1m) &&
-        pg->is_subtree(mapspace, pgent_t::size_1m))
-    {
-        pgent_t *subtree = pg->subtree(mapspace, pgent_t::size_1m);
-        word_t utcb_section = ((word_t)utcb &(PAGE_SIZE_1M-1)) >> ARM_PAGE_BITS;
-        pg = subtree->next(mapspace, UTCB_AREA_PGSIZE, utcb_section);
-    } else {
-        pg = NULL;
-    }
 }
 
 
 void generic_space_t::flush_tlb(space_t *curspace)
 {
-    if (((space_t *)this)->get_domain() != INVALID_DOMAIN)
-    {
-        domain_dirty = current_domain_mask;
-    }
 }
 
 void generic_space_t::flush_tlbent_local(space_t *curspace, addr_t vaddr, word_t log2size)
@@ -273,12 +182,7 @@ void generic_space_t::free_page_directory(kmem_resource_t *kresource)
 #endif
 }
 
-/**
- * Set up hardware context to run the tcb in this space.
- */
-void generic_space_t::activate(tcb_t *tcb)
-{
-}
+
 /**
  * Is this space sharing the domain of target?
  */
@@ -298,106 +202,6 @@ bool space_t::is_manager_of_domain(space_t *target)
 
     return bitmap_isset(this->get_manager_spaces_bitmap(), targetid);
 }
-
-bool space_t::add_shared_domain(space_t *space, bool manager)
-{
-    arm_domain_t domain = space->get_domain();
-    word_t clientid = space->get_space_id().get_spaceno();
-    word_t thisid = this->get_space_id().get_spaceno();
-
-    if (bitmap_isset(space->get_client_spaces_bitmap(), thisid)) {
-    }
-
-    bitmap_set(space->get_client_spaces_bitmap(), thisid);
-    bitmap_set(this->get_shared_spaces_bitmap(), clientid);
-    if (manager) {
-        bitmap_set(this->get_manager_spaces_bitmap(), clientid);
-    } else {
-        bitmap_clear(this->get_manager_spaces_bitmap(), clientid);
-    }
-
-    /* update domain masks */
-    if (domain != INVALID_DOMAIN) {
-        this->add_domain_access(domain, manager);
-        if (space == get_current_space()) {
-            current_domain_mask = space->get_domain_mask();
-            domain_dirty |= current_domain_mask;
-        }
-    }
-    return true;
-}
-
-bool space_t::remove_shared_domain(space_t *space)
-{
-    word_t clientid = space->get_space_id().get_spaceno();
-    word_t thisid = this->get_space_id().get_spaceno();
-
-    if (!bitmap_isset(space->get_client_spaces_bitmap(), thisid)) {
-        return false;
-    }
-    arm_domain_t domain = space->get_domain();
-
-    /* update domain masks */
-    if (domain != INVALID_DOMAIN) {
-        remove_domain_access(domain);
-        if (space == get_current_space()) {
-            current_domain_mask = space->get_domain_mask();
-        }
-    }
-
-    bitmap_clear(space->get_client_spaces_bitmap(), thisid);
-    bitmap_clear(this->get_shared_spaces_bitmap(), clientid);
-
-    return true;
-}
-
-/*
- * Remove access to this space's domain,
- * base space must have valid domain!
- */
-void space_t::flush_sharing_spaces(void)
-{
-    word_t i;
-
-    if (bitmap_isallclear(this->get_client_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-        return;
-    }
-
-    for (i = 0; i < CONFIG_MAX_SPACES; i++) {
-        if (bitmap_isset(this->get_client_spaces_bitmap(), i)) {
-            space_t *space = get_space_list()->lookup_space(spaceid(i));
-            space->remove_domain_access(this->domain);
-            if (space == get_current_space()) {
-                current_domain_mask = space->get_domain_mask();
-            }
-        }
-    }
-}
-
-void space_t::flush_sharing_on_delete(void)
-{
-    word_t i;
-
-    if (bitmap_isallclear(this->get_shared_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-    } else {
-        for (i = 0; i < CONFIG_MAX_SPACES; i++) {
-            if (bitmap_isset(this->get_shared_spaces_bitmap(), i)) {
-                space_t *source = get_space_list()->lookup_space(spaceid(i));
-                bitmap_clear(source->get_client_spaces_bitmap(), this->get_space_id().get_spaceno());
-            }
-        }
-    }
-    if (bitmap_isallclear(this->get_client_spaces_bitmap(), CONFIG_MAX_SPACES)) {
-    } else {
-        for (i = 0; i < CONFIG_MAX_SPACES; i++) {
-            if (bitmap_isset(this->get_client_spaces_bitmap(), i)) {
-                space_t *space = get_space_list()->lookup_space(spaceid(i));
-                (void) space->remove_shared_domain(this);
-            }
-        }
-    }
-}
-
 
 bool space_t::is_client_space(space_t *space)
 {

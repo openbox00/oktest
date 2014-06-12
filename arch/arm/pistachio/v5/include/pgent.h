@@ -9,11 +9,6 @@
 #include <smallalloc.h>
 #include <kmem_resource.h>
 
-/* ARCH specific pagefault identifiers */
-#define ARCH_READ       0
-#define ARCH_WRITE      1
-#define ARCH_READWRITE  2
-#define ARCH_EXECUTE    3
 
 #define PGTABLE_OFFSET      (VIRT_ADDR_PGTABLE - get_arm_globals()->phys_addr_ram)
 
@@ -208,25 +203,13 @@ public:
 public:
     void set_domain(arm_domain_t domain)
         {
-            l1.section.domain = domain;
         }
     void clear (generic_space_t * s, pgsize_e pgsize, bool kernel, addr_t vaddr)
         {
-            clear(s, pgsize, kernel);
         }
     void clear (generic_space_t * s, pgsize_e pgsize, bool kernel )
         {
-            raw = 0;
-            if (EXPECT_FALSE(pgsize == size_64k))
-            {
-                sync_64k (s, 0);
-            }
         }
-/*
-    void flush (generic_space_t * s, pgsize_e pgsize, bool kernel, addr_t vaddr)
-        {
-        }
-*/
     bool make_subtree (generic_space_t * s, pgsize_e pgsize, bool kernel,
                        kmem_resource_t *current)
         {
@@ -264,38 +247,18 @@ public:
     void remove_subtree (generic_space_t * s, pgsize_e pgsize, bool kernel,
                          kmem_resource_t *current)
         {
-            if (pgsize == size_level0)
-            {
-                current->free(kmem_group_pgtab, tree, ARM_L1_SIZE);
-            }
-            if (pgsize == size_1m)
-            {
-                if (has_tiny_pages (s))
-                    current->free (kmem_group_pgtab, ram_to_virt (
-                        (addr_t) (l1.fine_table.base_address << 12)),
-                                   ARM_L2_SIZE_TINY);
-                else
-                    current->free (kmem_group_pgtab, ram_to_virt (
-                               (addr_t) (l1.coarse_table.base_address << 10)),
-                               ARM_L2_SIZE_NORMAL);
-            }
-
-            clear (s, pgsize, kernel);
         }
 
     void set_window_faulting(generic_space_t * s, generic_space_t * target)
         {
-            l1.raw = (word_t)target & (~0x3);
         }
 
     void set_window_callback(generic_space_t * s, generic_space_t * target)
         {
-            l1.raw = (word_t)target & (~0x80000003);
         }
 
     void clear_window(generic_space_t * s)
         {
-            l1.raw = 0x0;
         }
 
     void * get_window(generic_space_t * s)

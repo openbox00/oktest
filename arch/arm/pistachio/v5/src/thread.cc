@@ -34,14 +34,7 @@ void switch_from(tcb_t * current, continuation_t continuation)
 
 void switch_to(tcb_t * dest, tcb_t * schedule)
 {
-    space_t *dest_space = dest->get_space();
-
-    if (EXPECT_TRUE(dest_space != get_current_tcb()->get_space())) {
-        get_arm_fass()->activate_domain(dest_space);
-    }
-    /* Perform the context switch for real. */
     asm_switch_to(dest->cont, (word_t)dest, dest->get_utcb_location());
-
     while(1);
 }
 

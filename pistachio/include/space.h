@@ -35,12 +35,6 @@ public:
 class generic_space_t
 {
 public:
-    enum access_e {
-        read            = ARCH_READ,
-        write           = ARCH_WRITE,
-        readwrite       = ARCH_READWRITE,
-        execute         = ARCH_EXECUTE
-    };
 
     /* initialize and free */
     bool init(fpage_t utcb_area, kmem_resource_t *kresource);
@@ -54,10 +48,6 @@ public:
     /* Allocate and free page directory */
     bool allocate_page_directory(kmem_resource_t *kresource);
     void free_page_directory(kmem_resource_t *kresource);
-
-    /* page fault handling */
-    void handle_pagefault(addr_t addr, addr_t ip, access_e access,
-            bool kernel, continuation_t continuation);
 
     /* mapping */
     bool map_fpage(phys_desc_t base, fpage_t dest_fp, kmem_resource_t *kresource);
@@ -229,7 +219,6 @@ INLINE bool generic_space_t::is_user_area(fpage_t fpage)
 INLINE spaceid_t spaceid(word_t id)
 {
     spaceid_t t;
-    t.set_raw(id);
     return t;
 }
 

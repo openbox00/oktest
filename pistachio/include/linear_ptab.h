@@ -7,24 +7,7 @@
 #include <arch/pgent.h>
 #include <space.h>
 
-
-/**
- * Array containing the actual page sizes (as bit-shifts) for the
- * various page table numbers.  Array is indexed by page size number
- * (i.e., pgent_t::pgsize_e).  Last entry must be the bit-shift for the
- * complete address space.
- */
 extern const word_t hw_pgshifts[];
-
-#ifdef CONFIG_PT_LEVEL_SKIP
-extern const word_t real_hw_pgshifts[];
-#endif
-
-
-/*
- * Define some operators on the pgsize enum to make code more
- * readable.
- */
 
 INLINE pgent_t::pgsize_e operator-- (pgent_t::pgsize_e & l, int)
 {
@@ -33,14 +16,6 @@ INLINE pgent_t::pgsize_e operator-- (pgent_t::pgsize_e & l, int)
     return ret;
 }
 
-#ifdef CONFIG_PT_LEVEL_SKIP
-INLINE pgent_t::hw_pgsize_e operator-- (pgent_t::hw_pgsize_e & l, int)
-{
-       pgent_t::hw_pgsize_e ret = l;
-       l = (pgent_t::hw_pgsize_e) ((word_t) l - 1);
-       return ret;
-}
-#endif
 
 INLINE pgent_t::pgsize_e operator++ (pgent_t::pgsize_e & l, int)
 {
@@ -89,15 +64,6 @@ INLINE word_t page_shift (pgent_t::pgsize_e pgsize)
     return hw_pgshifts[pgsize];
 }
 
-
-/**
- * Get page mask for a given page size (i.e., bitmask which mask out
- * least significant bits).
- *
- * @param pgsize        page size number
- *
- * @return address mask for given page size number
- */
 word_t page_mask (pgent_t::pgsize_e pgsize) PURE;
 
 INLINE word_t page_mask (pgent_t::pgsize_e pgsize)
@@ -105,74 +71,17 @@ INLINE word_t page_mask (pgent_t::pgsize_e pgsize)
     return ((1UL << hw_pgshifts[pgsize]) - 1);
 }
 
-
-/**
- * Get number of entries for page table of a given page size.
- *
- * @param pgsize        page size number
- *
- * @return page size (number of entries) for given page size
- */
 INLINE word_t page_table_size (pgent_t::pgsize_e pgsize)
 {
     return 1UL << (hw_pgshifts[pgsize+1] - hw_pgshifts[pgsize]);
 }
 
-
-/**
- * Get page table index of virtual address for a particular page size.
- *
- * @param pgsize        page size number
- * @param vaddr         virtual address
- *
- * @return page table index for a table of the given page size
- */
 INLINE word_t page_table_index (pgent_t::pgsize_e pgsize, addr_t vaddr)
 {
     return ((word_t) vaddr >> hw_pgshifts[pgsize]) &
         (page_table_size (pgsize) - 1);
 }
 
-#ifdef CONFIG_PT_LEVEL_SKIP
-/**
- * Round an address down to the given hardware pagesize
- *
- * @param addr          the address to round down
- * @param hw_pgsize     hardware page size number
- *
- * @return rounded address
- */
-INLINE addr_t hw_round_down (addr_t addr, pgent_t::hw_pgsize_e hw_pgsize)
-{
-    u64_t phys = (u64_t)(word_t)addr;
-    phys &= ~(((u64_t)1 << real_hw_pgshifts[hw_pgsize])-1);
-    // XXX Add PAE support
-    return (addr_t)(word_t)phys;
-}
-
-/**
- * Get hardware page size in shift length for given page size.
- *
- * @param hw_pgsize     page size number
- *
- * @return hardware page shift for given page size
- */
-word_t hw_page_shift (pgent_t::hw_pgsize_e hw_pgsize) PURE;
-
-INLINE word_t hw_page_shift (pgent_t::hw_pgsize_e hw_pgsize)
-{
-    return real_hw_pgshifts[hw_pgsize];
-}
-#endif
-
-
-/**
- * Check if page size is supported by hardware.
- *
- * @param pgsize        page size number
- *
- * @return true if page size is supported by hardware, false otherwise
- */
 bool is_page_size_valid (pgent_t::pgsize_e pgsize) PURE;
 
 INLINE bool is_page_size_valid (pgent_t::pgsize_e pgsize)
@@ -180,17 +89,6 @@ INLINE bool is_page_size_valid (pgent_t::pgsize_e pgsize)
     return (1UL << hw_pgshifts[pgsize]) & HW_VALID_PGSIZES;
 }
 
-/**
- * Safely read from memory.  If memory is a user address, the page
- * tables are parsed to find the physical address to read from.  If
- * memory is not a user-address, the memory is accessed directly.
- *
- * @param space         space to read from
- * @param vaddr         virtual memory location to read from
- * @param v             returned value
- *
- * @return true if memory could be read, false otherwise
- */
 template<typename T>
 INLINE bool readmem (space_t * space, addr_t vaddr, T * v)
 {

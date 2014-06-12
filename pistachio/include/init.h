@@ -4,16 +4,9 @@
 #ifndef __INIT_H__
 #define __INIT_H__
 
-/* FIXME: does this go here? */
-#if defined(__APPLE_CC__)
-#define SEC_INIT "__INIT, __init"
-#define SEC_INIT_DATA "__INIT, __init.data"
-#define SEC_INIT_CPU "__INIT, __init.cpu"
-#else
 #define SEC_INIT ".init"
 #define SEC_INIT_DATA ".init.data"
 #define SEC_INIT_CPU ".init.cpu"
-#endif
 
 #include <types.h>
 

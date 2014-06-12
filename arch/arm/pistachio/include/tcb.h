@@ -42,7 +42,6 @@ INLINE void tcb_t::set_space(space_t * new_space)
         this->space_id = new_space->get_space_id();
         this->page_directory = new_space->pgent(0);
     } else {
-        this->space_id = spaceid_t::nilspace();
         this->page_directory = NULL;
     }
 }

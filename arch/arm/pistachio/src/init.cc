@@ -107,15 +107,12 @@ scheduler_t::get_highest_priority(void)
     return top_prio;
 }
 void
-scheduler_t::schedule(tcb_t * current, continuation_t continuation,
-                      flags_t flags)
+scheduler_t::schedule(tcb_t * current, continuation_t continuation)
 {
     prio_t max_prio = get_highest_priority();
     bool current_runnable = current->get_state().is_runnable() && !current->is_reserved();
     if (current_runnable) {
-        if (current->effective_prio > max_prio ||
-                (!(flags & sched_round_robin)
-                        && current->effective_prio == max_prio)) {
+        if (current->effective_prio > max_prio ||(current->effective_prio == max_prio)) {
             ACTIVATE_CONTINUATION(continuation);
         }
     }
@@ -302,7 +299,7 @@ extern "C" void NORETURN SECTION(".init") init_memory(word_t *physbase)
     get_arm_globals()->current_tcb = get_idle_tcb();
     pre_tcb_init = 0;
     run_init_script(INIT_PHASE_OTHERS);
-    get_current_scheduler()->schedule(get_current_tcb(), idle_thread, scheduler_t::sched_default);   
+    get_current_scheduler()->schedule(get_current_tcb(), idle_thread);   
 }
 
 

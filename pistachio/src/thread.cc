@@ -79,12 +79,6 @@ void tcb_t::init(void)
     /* flags */
     runtime_flags = 0;
     post_syscall_callback = NULL;
-
-    /* IPC Control initialization */
-    space_id = spaceid_t::kernelspace();
-
-    /* initialize scheduling */
-    get_current_scheduler()->init_tcb(this);
     init_stack();
 }
 
