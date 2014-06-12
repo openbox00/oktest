@@ -28,7 +28,7 @@ SECTION(".elfweaver_info") extern const struct elfweaver_info weaver_info = {
     sizeof(utcb_t),
     ARCH_MAX_SPACES,
     __L4_VALID_HW_PAGE_PERMS,
-    sizeof(clist_t),
+    sizeof(int),
     sizeof(cap_t),
     sizeof(space_t),
     sizeof(tcb_t),

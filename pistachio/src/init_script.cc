@@ -216,7 +216,6 @@ static void SECTION(SEC_INIT)
     ki_init_ids(ki_init_ids_t *args, kmem_resource_t *kresource)
 {
     init_spaceids(args->max_space_ids, kresource);
-    init_clistids(args->max_clist_ids, kresource);
 }
 
 static void SECTION(SEC_INIT)

@@ -11,7 +11,6 @@
 #include <space.h>
 #include <linear_ptab.h>
 #include <kernel/generic/lib.h>
-#include <ref_inline.h>
 
 extern "C" CONTINUATION_FUNCTION(initial_to_user);
 void handle_ipc_error (void);
@@ -86,11 +85,7 @@ void tcb_t::init(void)
 
     /* initialize scheduling */
     get_current_scheduler()->init_tcb(this);
-
     init_stack();
-
-    this->pager.init();
-    this->exception_handler.init();
 }
 
 

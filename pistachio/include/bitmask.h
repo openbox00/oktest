@@ -51,13 +51,6 @@ public:
         {
             return (maskvalue & (1UL << n)) != 0;
         }
-
-    // Conversion
-
-    inline operator word_t (void)
-        {
-            return maskvalue;
-        }
 };
 
 

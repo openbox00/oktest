@@ -11,7 +11,6 @@
 #include <resources.h>
 #include <capid.h>
 #include <tcb_syscall_data.h>
-#include <syncpoint.h>
 #include <endpoint.h>
 #include <utcb.h>
 #include <smallalloc.h>
@@ -62,7 +61,6 @@ public:
     bool grab();
     void release();
     bool is_grabbed_by_me();
-    INLINE void set_waiting_for(syncpoint_t * syncpoint);
     void remove_dependency(void);
     INLINE endpoint_t * get_endpoint(void);
     INLINE void reserve(void);
@@ -213,9 +211,6 @@ public:
     endpoint_t          end_point;
 
 private:
-    /** Synchronisation point, if any, this thread is currently waiting on. */
-    syncpoint_t *       waiting_for;
-
     ref_t               exception_handler;
 
 public:
@@ -422,61 +417,21 @@ tcb_t::get_endpoint(void)
     return &(this->end_point);
 }
 
-INLINE void
-tcb_t::set_waiting_for(syncpoint_t * syncpoint)
-{
-    this->waiting_for = syncpoint;
-}
-/**
- * Get TCB of a thread's pager
- * @return      TCB of pager
- */
-INLINE tcb_t * tcb_t::get_pager()
-{
-    return this->pager.get_tcb();
-}
-
-/**
- * Get TCB of a thread's exception handler
- * @return      TCB of exception handler
- */
-
-INLINE tcb_t * tcb_t::get_exception_handler()
-{
-    return this->exception_handler.get_tcb();
-}
-
-/**
- * Get a thread's user-defined handle
- * @return      user-defined handle
- */
 INLINE word_t tcb_t::get_user_handle()
 {
     return get_utcb()->user_defined_handle;
 }
 
-/**
- * Set user-defined handle for a thread
- * @param handle        new value for user-defined handle
- */
 INLINE void tcb_t::set_user_handle(const word_t handle)
 {
     get_utcb()->user_defined_handle = handle;
 }
 
-/**
- * Set the IPC error code
- * @param err   new IPC error code
- */
 INLINE void tcb_t::set_error_code(word_t err)
 {
     get_utcb()->error_code = err;
 }
 
-/**
- * Get the IPC error code
- * @return      IPC error code
- */
 INLINE word_t tcb_t::get_error_code(void)
 {
     return get_utcb()->error_code;

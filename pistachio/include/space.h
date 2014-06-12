@@ -94,16 +94,12 @@ public:
     void init_security(clist_t* new_clist)
         {
             clist = new_clist;
-            clist->add_space((space_t*)this);
-
             permissions.raw = 0;
         }
 
     void allow_plat_control(void) { permissions.access.plat_control = 1; }
     void restrict_plat_control(void) { permissions.access.plat_control = 0; }
     bool may_plat_control(void) { return permissions.access.plat_control == 1; }
-
-    clist_t * lookup_clist(clistid_t clist_id); 
     space_t * lookup_space(spaceid_t space_id);
 
     /* temporary */

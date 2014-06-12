@@ -1,6 +1,3 @@
-/**
- * @file Generic identifier lookup table.
- */
 #ifndef __IDTABLE_H__
 #define __IDTABLE_H__
 

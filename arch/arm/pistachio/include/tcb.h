@@ -34,11 +34,6 @@ INLINE acceptor_t tcb_t::get_acceptor(void)
     return get_utcb()->acceptor;
 }
 
-INLINE bool tcb_t::in_exception_ipc(void)
-{
-    return (resource_bits & (1UL << (word_t)EXCEPTIONFP)) || (arch.exc_num != 0);
-}
-
 INLINE void tcb_t::set_space(space_t * new_space)
 {
     this->space = new_space;

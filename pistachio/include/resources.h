@@ -100,16 +100,7 @@ public:
             return *this;
         }
 
-    /**
-     * Check if any resouces are registered.
-     * @return true if any resources are registered, false otherwise
-     */
-    bool have_resources (void)
-        {
-            return (word_t) resource_bits != 0;
-        }
-
-    /**
+   /**
      * Check if indicated resource is registered.
      * @param t         type of resource
      * @return true if resource is registered, false otherwise
@@ -119,14 +110,6 @@ public:
             return resource_bits.is_set ((int) t);
         }
 
-    /**
-     * Convert resource bits to a word (e.g., for printing).
-     * @return the resource mask
-     */
-    inline operator word_t (void)
-        {
-            return (word_t) resource_bits;
-        }
 };
 
 #endif

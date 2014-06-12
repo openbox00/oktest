@@ -109,12 +109,6 @@ bool SECTION(SEC_INIT)
     }
     return true;
 }
-
-clist_t * generic_space_t::lookup_clist(clistid_t clist_id)
-{
-        return get_clist_list()->lookup_clist(clist_id);
-}
-
 space_t * generic_space_t::lookup_space(spaceid_t space_id)
 {
         return get_space_list()->lookup_space(space_id);
