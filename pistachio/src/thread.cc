@@ -13,8 +13,6 @@ void tcb_t::init(void)
 {
     init_stack();
 }
-
-
 void tcb_t::create_startup_stack (void (*func)())
 {
     init_stack();

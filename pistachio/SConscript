@@ -340,12 +340,6 @@ cppdefines += [("CONFIG_MAX_CLISTS", max_clists)]
 
 
 #architecture options
-
-if arch == "mips":
-    cppdefines += [("CONFIG_CPU_CLOCK_SPEED", 100000)]
-    cppdefines += [("CONFIG_MAX_NUM_ASIDS", 256)]
-    cppdefines += [("CONFIG_ASIDS_ROUNDR", 1)]
-
 if arch == "arm":
     if arch_version == 5:
         cppdefines += [("CONFIG_ARM_VER", 5)]

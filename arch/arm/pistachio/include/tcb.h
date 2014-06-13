@@ -1,6 +1,3 @@
-/*
- * Description:   ARM TCB handling functions
- */
 #ifndef __ARM__TCB_H__
 #define __ARM__TCB_H__
 
@@ -15,8 +12,6 @@ get_current_tcb (void)
     return get_arm_globals()->current_tcb;
 }
 
-
-/* include ARM version specific implementations */
 #include <arch/ver/tcb.h>
 
 INLINE word_t tcb_t::get_mr(word_t index)
@@ -27,11 +22,6 @@ INLINE word_t tcb_t::get_mr(word_t index)
 INLINE void tcb_t::set_mr(word_t index, word_t value)
 {
     get_utcb()->mr[index] = value;
-}
-
-INLINE acceptor_t tcb_t::get_acceptor(void)
-{
-    return get_utcb()->acceptor;
 }
 
 INLINE void tcb_t::set_space(space_t * new_space)
@@ -91,9 +81,5 @@ INLINE void tcb_t::set_utcb_location(word_t location)
     utcb_location = location;
 }
 
-INLINE addr_t tcb_t::get_preempt_callback_ip()
-{
-    return (addr_t)get_utcb()->preempt_callback_ip;
-}
 
 #endif /* !__ARM__TCB_H__ */

@@ -76,8 +76,6 @@ bool SECTION(SEC_INIT)
         fpg.set_rwx(rwx);
 
         phys_desc.set_base(paddr);
-        get_current_tcb()->sys_data.set_action
-            (tcb_syscall_data_t::action_map_control);
         if (!space->map_fpage(phys_desc, fpg, kresource))
         {
             return false;
