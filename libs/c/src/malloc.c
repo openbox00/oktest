@@ -40,10 +40,7 @@ malloc(size_t nbytes)
         }
         if (p == freep) {       /* wrapped around free list */
             if ((p = (Header *)morecore(nunits)) == NULL) {
-                //errno = ENOMEM;
                 return NULL;    /* none left */
-            } else {
-
             }
         }
     }

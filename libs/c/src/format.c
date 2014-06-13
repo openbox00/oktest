@@ -6,11 +6,6 @@
 
 #include "stream.h"
 
-/*
- * All of these functions do not lock the I/O stream.  They all end up calling
- * format which handles the locking. 
- */
-
 /* lookup tables for umaxtostr */
 static const char xdigits[16] = "0123456789abcdef";
 static const char Xdigits[16] = "0123456789ABCDEF";
@@ -76,8 +71,6 @@ fprintf1(char *output, FILE *stream, bool stream_or_memory, size_t r, size_t n,
 
     *over = overflowed;         /* Set overflow flag in the caller */
 
-    if (stream != NULL)
-
     return r - y;               /* We return the number of chars added */
 }
 
@@ -135,7 +128,6 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                 continue;
             case '*':
                 width = va_arg(ap, int);
-
                 if (ljust)
                     width = -width;
                 continue;
@@ -179,42 +171,12 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                 continue;
             case 't':
             case 'z':
-                lflags = 1;     /* assume ptrdiff_t and size_t are long */
+                lflags = 1;
                 continue;
             case 'j':
-                lflags = 2;     /* assume intmax_t is long long */
+                lflags = 2; 
                 continue;
-#ifndef NO_FLOAT
-            case 'a':
-            case 'A':
-            case 'e':
-            case 'E':
-            case 'f':
-            case 'g':
-            case 'G':
-                /* NOT IMPLEMENTED */
-                switch (lflags) {
-                case 0:
-                    (void)va_arg(ap, double);
-
-                    break;
-                case 1:
-                    (void)va_arg(ap, long double);
-
-                    break;
-                default:
-                    goto default_case;
-                }
-                break;
-#endif /* !NO_FLOAT */
             case 'c':
-#ifndef NO_WCHAR
-                /* NOT IMPLEMENTED */
-                if (lflags > 0)
-                    (void)va_arg(ap, wchar_t);
-
-                else
-#endif
                     *(buf_end - 1) = va_arg(ap, int);
 
                 s = buf_end - 1;
@@ -224,39 +186,23 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
             case 'i':
                 switch (lflags) {
                 case -2:
-                    // d = va_arg(ap, signed char);
                     d = va_arg(ap, int);
-
                     break;
                 case -1:
-                    // d = va_arg(ap, short);
                     d = va_arg(ap, int);
-
                     break;
                 case 0:
                     d = va_arg(ap, int);
-
                     break;
                 case 1:
                     d = va_arg(ap, long);
-
                     break;
-#ifndef NO_LONG_LONG
-                case 2:
-                    d = va_arg(ap, long long);
-
-                    break;
-#endif
                 default:
                     goto default_case;
                 }
                 if (d < 0LL) {
-                    /*
-                     * safely negate d, even
-                     * INTMAX_MIN 
-                     */
                     u = -(uintmax_t)d;
-                    prefix = '-';       /* override ' ' or '+' */
+                    prefix = '-';
                     prefixlen = 1;
                 } else {
                     u = d;
@@ -308,11 +254,6 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                 }
             case 's':
                 s = va_arg(ap, const char *);
-
-                /*
-                 * XXX left-justified strings are scanned
-                 * twice 
-                 */
                 if (point) {
                     for (len = 0; len < prec; len++)
                         if (s[len] == '\0')
@@ -326,41 +267,26 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                 goto common1;
             case 'X':
                 digits = Xdigits;
-                /* FALLTHROUGH */
             case 'x':
                 base = 16;
                 if (alt) {
                     prefix = '0' | *p << 8;
                     prefixlen = 2;
                 }
-                /* FALLTHROUGH */
               common1:
-                /* common code for %o, %u, %X, and %x */
                 switch (lflags) {
                 case -2:
-                    // u = va_arg(ap, unsigned char);
                     u = va_arg(ap, int);
-
                     break;
                 case -1:
-                    // u = va_arg(ap, unsigned short);
                     u = va_arg(ap, int);
-
                     break;
                 case 0:
                     u = va_arg(ap, unsigned int);
-
                     break;
                 case 1:
                     u = va_arg(ap, unsigned long);
-
                     break;
-#ifndef NO_LONG_LONG
-                case 2:
-                    u = va_arg(ap, unsigned long long);
-
-                    break;
-#endif
                 default:
                     goto default_case;
                 }
@@ -382,7 +308,6 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
                     int tmp = fprintf1(output, stream, stream_or_memory, r, n,
                                        s, len, prefix,
                                        prefixlen, width, prec, &overflowed);
-
                     r += tmp;
                     output += tmp;
                 }
@@ -402,12 +327,6 @@ format_string(char *output, FILE *stream, bool stream_or_memory, size_t n,
     }
     if (!stream_or_memory && !overflowed)
         *output++ = '\0';
-
-    if (stream != NULL)
-
-    /* If line buffered, flush the stream */
-    if (stream != NULL && stream->buffering_mode == _IOLBF) {
-    }
 
     return r;
 }

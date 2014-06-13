@@ -39,7 +39,6 @@ void kmem_resource_t::init_small_alloc_pools(void)
 
 void kmem_resource_t::init(void *end)
 {
-    lock.init();
     init_heap((void *)((word_t)this + KMEM_CHUNKSIZE), end);
     init_kmem_groups();
     init_small_alloc_pools();
@@ -48,18 +47,14 @@ void kmem_resource_t::init(void *end)
 void * kmem_resource_t::alloc(kmem_group_e group, bool zeroed)
 {
     void * ret;
-    lock.lock();
     ret = small_alloc_pools[group].allocate(zeroed);
-    lock.unlock();
     return ret;
 }
 
 void * kmem_resource_t::alloc(kmem_group_e group, word_t size, bool zeroed)
 {
     void * ret;
-    lock.lock();
     ret = heap.alloc(&kmem_groups[group], size, zeroed);
-    lock.unlock();
     return ret;
 }
 

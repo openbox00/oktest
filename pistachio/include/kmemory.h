@@ -5,7 +5,6 @@
 #define __KMEMORY_H__
 
 #include <debug.h>
-#include <sync.h>
 #include <kernel/generic/lib.h>
 
 #if defined(CONFIG_KMEM_TRACE)

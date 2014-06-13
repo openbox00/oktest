@@ -23,7 +23,6 @@ SECTIONS
         *(.base)
         *(.text.startup)
         *(.text)
-        *(.gnu.linkonce.*)
     } > rom
 
     .rodata . :
@@ -31,21 +30,13 @@ SECTIONS
         *(.rodata)
         *(.rodata.*)
     } > rom
-
-    .kdebug . :
-    {
-        *(.kdebug)
-    } > rom
-
     _end_rom = .;                       /* ROM ends here. */
-
     _start_init = .;
     .init . :
     {
         *(.init)
         *(.init.*)
     } > rom
-
     .roinit . :
     {
         *(.roinit)
@@ -70,13 +61,6 @@ SECTIONS
         *(.data)
         /**(.data.*)*/
     } > ram
-
-    .kdebug-data . :
-    {
-        *(.data.kdebug)
-        *(.kdebug.data)
-    } > ram
-
     .bss . :
     {
         . = ALIGN(16);
@@ -109,11 +93,7 @@ SECTIONS
     } > ram
 
     . = ALIGN(4K);
-    _end_ram = .;                   /* RAM ends here. */
-
-    /* special section that is discarded during linking
-       all unwanted sections should go here */
-
+    _end_ram = .; 
     
     /* Required for user code! */
     . = ALIGN(4K);

@@ -29,9 +29,6 @@ prio_queue_t::dequeue(tcb_t * tcb)
     prio_t priority = tcb->effective_prio;
 
     DEQUEUE_LIST(tcb_t, prio_queue[priority], tcb, ready_list);
-    if (prio_queue[priority] == 0) {
-        remove_sched_bitmap_bit(priority);
-    }
 }
 
 void

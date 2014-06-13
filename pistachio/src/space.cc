@@ -18,7 +18,6 @@
 #include <phys_segment.h>
 
 space_t * global_spaces_list = NULL;
-spinlock_t spaces_list_lock;
 
 INLINE addr_t addr_align (addr_t addr, word_t align)
 {
@@ -34,7 +33,6 @@ void SECTION(SEC_INIT) init_spaceids(word_t max_spaceids,
 {
     void * new_table;
     new_table = kresource->alloc(kmem_group_spaceids, sizeof(space_t*) * max_spaceids, true);
-    space_lookup.init(new_table, max_spaceids);
 }
 
 space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clist)
@@ -106,8 +104,3 @@ bool SECTION(SEC_INIT)
     }
     return true;
 }
-space_t * generic_space_t::lookup_space(spaceid_t space_id)
-{
-        return get_space_list()->lookup_space(space_id);
-}
-

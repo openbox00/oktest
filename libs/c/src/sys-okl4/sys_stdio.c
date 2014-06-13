@@ -43,17 +43,11 @@ serial_stdio_init(void)
 static size_t
 init_write(const void *data, long int position, size_t count, void *handle)
 {
-    /* If serial initialisation failed, fall back to /dev/null serial. */
-#if defined SERIAL_DRIVER
     if (serial_init() == 0) {
         serial_stdio_init();
     } else {
-#else
-    if (1) {
-#endif
         null_init();
     }
-
     /* Call the write function and return its result */
     return __stdout.write_fn(data, position, count, handle);
 }
@@ -61,14 +55,9 @@ init_write(const void *data, long int position, size_t count, void *handle)
 static size_t
 init_read(void *data, long int position, size_t count, void *handle)
 {
-    /* If serial initialisation failed, fall back to /dev/null serial. */
-#if defined SERIAL_DRIVER
     if (serial_init() == 0) {
         serial_stdio_init();
     } else {
-#else
-    if (1) {
-#endif
         null_init();
     }
 

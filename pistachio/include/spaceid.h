@@ -31,13 +31,4 @@ private:
     friend void init_spaceids(word_t max_spaceids, kmem_resource_t *kresource);
 };
 
-INLINE spaceid_lookup_t *
-get_space_list()
-{
-    extern spaceid_lookup_t space_lookup;
-    return &space_lookup;
-}
-
-void init_spaceids(word_t max_spaceids, kmem_resource_t *kresource);
-
 #endif /*__L4__SPACEID_H__*/

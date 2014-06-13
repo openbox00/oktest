@@ -1,15 +1,6 @@
 #include <okl4/types.h>
 #include <okl4/env.h>
 
-#ifdef __ADS__
-/*
- * For ADS, force the api symbol to be used so that the ADS linker
- * won't remove it from the final link.  This is not a problem for
- * RVCT and gcc.
- */
-#pragma import(okl4_api_version)
-#endif
-
 okl4_env_segment_t *
 okl4_env_get_segment(const char *name)
 {

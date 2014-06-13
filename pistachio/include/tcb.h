@@ -302,7 +302,7 @@ void switch_to(tcb_t * dest, tcb_t * schedule) NORETURN;
  *               Operations on thread ids and settings
  *
  **********************************************************************/
-extern spinlock_t state_lock;
+//extern spinlock_t state_lock;
 
 INLINE space_t * tcb_t::get_space() const
 {
@@ -583,17 +583,13 @@ tcb_t::get_post_syscall_callback(void)
 INLINE void generic_space_t::add_tcb(tcb_t * tcb)
 {
     thread_count++;
-    spaces_list_lock.lock();
     ENQUEUE_LIST_TAIL(tcb_t, thread_list, tcb, thread_list);
-    spaces_list_lock.unlock();
 }
 
 INLINE void generic_space_t::remove_tcb(tcb_t * tcb)
 {
     thread_count--;
-    spaces_list_lock.lock();
     DEQUEUE_LIST(tcb_t, thread_list, tcb, thread_list);
-    spaces_list_lock.unlock();
 }
 
 #endif /* !__TCB_H__ */

@@ -50,18 +50,7 @@ class kmem_resource_t
 private:
     kmem_t          heap;  /* per resource pool heap */
     small_alloc_t   small_alloc_pools[MAX_KMEM_SMALL_ALLOC_GROUP];
-#if defined(CONFIG_KMEM_TRACE)
-    macro_set_t     macro_set_kmem_groups;
-    macro_set_entry_t macro_set_entry_kmem_groups[MAX_KMEM_GROUP];
-    macro_set_entry_t * macro_set_list_kmem_groups[MAX_KMEM_GROUP];
-    word_t          group_number;
-#endif
     kmem_group_t    kmem_groups[MAX_KMEM_GROUP];
-    spinlock_t      lock;
-
-    /* Init functions that may later be removed if this object
-     * is initialized by elf-weaver.
-     */
 
     void init_heap(void * start, void *end)
     {
@@ -73,25 +62,11 @@ private:
         word_t i;
         for (i = 0; i < MAX_KMEM_GROUP; i++)
         {
-#if defined(CONFIG_KMEM_TRACE)
-            kmem_groups[i].mem = 0;
-            kmem_groups[i].name = __kmem_group_names[i];
-            macro_set_entry_kmem_groups[i].set = &macro_set_kmem_groups;
-            macro_set_entry_kmem_groups[i].entry = (addr_t) &kmem_groups[i];
-            macro_set_list_kmem_groups[i] = &macro_set_entry_kmem_groups[i];
-#else
             kmem_groups[i] = 0;
-#endif
         }
-#if defined(CONFIG_KMEM_TRACE)
-        macro_set_kmem_groups.list = macro_set_list_kmem_groups;
-        group_number = MAX_KMEM_GROUP;
-        macro_set_kmem_groups.entries = &group_number;
-#endif
     }
 
     void arch_init_small_alloc_pools(void);
-
     void init_small_alloc_pools(void);
 
 public:
@@ -104,10 +79,8 @@ public:
         bool ret;
         ret = (group == kmem_group_space) || (group == kmem_group_tcb) ||
              (group == kmem_group_mutex);
-#if defined(ARCH_ARM) && (ARCH_VER == 5)
         ret = ret || (group == kmem_group_l0_allocator) ||
              (group == kmem_group_l1_allocator);
-#endif
         return ret;
     }
 
@@ -122,17 +95,8 @@ public:
 
     friend class small_alloc_t;
     friend class kdb_t;
-
-#if defined(CONFIG_KDB_CONS)
-    kmem_resource_t *next;
-#endif
 };
 
 extern kmem_resource_t * get_current_kmem_resource(void);
-
-/* If you have a KDB console, allow selection of resource for reporting */
-#if defined(CONFIG_KDB_CONS)
-extern kmem_resource_t *__resources;
-#endif
 
 #endif /* !__KMEM_RESOURCE_H__ */

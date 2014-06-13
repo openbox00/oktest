@@ -1,8 +1,3 @@
-/**
- * @file
- * @brief Types unique to the core OKL4 kernel.
- */
-
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
@@ -10,16 +5,6 @@
 #include <config.h>
 
 #if !defined(ASSEMBLY)
-/**
- * Add offset to address.
- * @param addr          original address
- * @param off           offset to add
- * @return new address
- */
-INLINE addr_t addr_offset(addr_t addr, addr_t off)
-{
-    return (addr_t)((word_t)addr + (word_t)off);
-}
 
 
 typedef u16_t execution_unit_t;

@@ -1,11 +1,4 @@
 /*
- * Description:    The kernels entry point
- */
-
-#include <kernel/arch/asm.h>
-#include <soc/interface.h>
-
-/*
  * The following defines were originally in core kernel code.  They are
  * repeated here as SoC code should really handle its own definitions of this
  * info.
@@ -14,14 +7,17 @@
 #define C15_control      c1
 #define C15_CONTROL_INIT 0x0078
 
+#define STACK_TOP       ((1 << 10) - 8)
+
 /* This is the entry point of the NICTA::Pistachio ARM architecture.
  * The boot loader must call _start with the processor in privileged
  * mode and translation disabled.
  */
         .section .init.head
-        EXPORT  __phys_addr_stack
-        BEGIN_PROC(_start)
-
+        .global  __phys_addr_stack                     
+	    .global _start;                               
+    	.align;                                   
+_start:
         /* Setup status register for supervisor mode, interrupts disabled */
         msr     cpsr_fc, #0xd3
 
@@ -29,8 +25,7 @@
         ldr     r0,     =C15_CONTROL_INIT
         mcr     CP15, 0, r0, C15_control, c0
 
-        /* Flush D-Cache */
-LABEL(L0)
+L0:
         mrc     p15, 0, r15, c7, c14, 3
         bne     L0
 
@@ -54,11 +49,10 @@ LABEL(L0)
         bl      kernel_arch_init
 
         /* NOT REACHED */
-LABEL(L1)
+L1:
         b       L1
 
         /* These need to be filled in by the build system */
-LABEL(__phys_addr_stack)
-        DCDU    0x0
+__phys_addr_stack:
+        .word    0x0
 
-        END

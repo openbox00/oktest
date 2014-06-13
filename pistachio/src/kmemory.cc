@@ -5,7 +5,6 @@
 #include <kmemory.h>
 #include <debug.h>
 #include <init.h>
-#include <sync.h>
 #include <kmem_resource.h>
 #include <arch/globals.h>
 

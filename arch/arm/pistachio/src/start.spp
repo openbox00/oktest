@@ -1,17 +1,13 @@
-#include <soc/interface.h>
-
-
         .section .init.start
-        EXPORT __phys_addr_ram
-        BEGIN_PROC(kernel_arch_init)
+        .global __phys_addr_ram
+        .global kernel_arch_init		                          
+    	.align;    
+kernel_arch_init:
         adr     r0,     __phys_addr_ram
         bl      init_memory
 
         /* NOT REACHED */
-LABEL(L1)
+L1:
         b       L1
-
-/* These need to be filled in by the build system */
-LABEL(__phys_addr_ram)
-        DCDU    0x0
-        END
+__phys_addr_ram:
+        .word    0x0

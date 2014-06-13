@@ -20,30 +20,19 @@
 #define C15_CONTROL_M           0x0001                  /* Memory management enable     */
 #define C15_CONTROL_X           0x2000                  /* Remap interrupt vector       */
 
-#define C15_CONTROL_INIT        0
-
 #define C15_CONTROL_KERNEL      (C15_CONTROL_M | C15_CONTROL_X)
 
 extern "C" {
-    extern char _start_rom[];
-    extern char _end_rom[];
-    extern char _start_ram[];
-    extern char _end_ram[];
     extern char _start_init[];
     extern char _end_init[];
-    extern char _end[];
 }
-
-
 
 #define start_init              ((addr_t) _start_init)
 #define end_init                ((addr_t) _end_init)
 
-
 extern word_t arm_high_vector;
 
 CONTINUATION_FUNCTION(idle_thread);
-
 CONTINUATION_FUNCTION(idle_thread)
 {
     while (1) {
@@ -197,9 +186,6 @@ void SECTION(".init") init_arm_interrupts()
     vector_num_tcb_handles = num_tcbs;
     vector_tcb_handle_array = thread_handle_array;
 }
-
-extern bitmap_t ipc_bitmap_ids;
-
 
 bool space_t::add_mapping(addr_t vaddr, addr_t paddr, pgent_t::pgsize_e size,
                           rwx_e rwx, bool kernel, memattrib_e attrib,

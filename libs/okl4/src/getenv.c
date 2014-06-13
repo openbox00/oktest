@@ -2,10 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <okl4/env.h>
-#include <okl4/version.h>
 #include <stdio.h>
 
-const int okl4_api_version = LIBOKL4_API_VERSION;
+const int okl4_api_version = 0x2;
 
 /* Pointer to environment string */
 okl4_env_t *__okl4_environ;

@@ -19,20 +19,6 @@ public:
             return id_table[id];
         }
 public:
-    void add_object(word_t id, addr_t obj)
-        {
-            id_table[id] = obj;
-        }
-    void remove_object(word_t id)
-        {
-            id_table[id] = NULL;
-        }
-protected:
-    inline void init(addr_t table, word_t entries)
-        {
-            id_table = (addr_t*)table;
-            max_id = entries-1;
-        }
 private:
     addr_t* id_table;
     word_t max_id;

@@ -167,14 +167,12 @@ void SECTION(SEC_INIT) setup_initial_mappings (space_t * space);
 
 extern space_t * space_table;
 extern space_t * global_spaces_list;
-extern spinlock_t spaces_list_lock;
+//extern spinlock_t spaces_list_lock;
 
 INLINE void generic_space_t::enqueue_spaces()
 {
-    spaces_list_lock.lock();
     ENQUEUE_LIST_TAIL(space_t, global_spaces_list,
             ((space_t *)this), spaces_list);
-    spaces_list_lock.unlock();
 }
 
 INLINE bool is_kresourced_space(space_t * space)
