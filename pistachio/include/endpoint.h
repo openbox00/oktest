@@ -1,3 +1,0 @@
-class endpoint_t
-{
-};

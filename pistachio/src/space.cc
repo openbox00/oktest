@@ -2,20 +2,8 @@
  * Description:   architecture independent parts of space_t
  */
 
-#include <l4.h>
-#include <debug.h>
-#include <kmemory.h>
-#include <kmem_resource.h>
-#include <space.h>
 #include <tcb.h>
-#include <schedule.h>
-#include <threadstate.h>
-#include <kernel/arch/special.h>
-#include <kernel/bitmap.h>
 #include <linear_ptab.h>
-#include <kernel/generic/lib.h>
-#include <smallalloc.h>
-#include <phys_segment.h>
 
 space_t * global_spaces_list = NULL;
 
@@ -24,9 +12,6 @@ INLINE addr_t addr_align (addr_t addr, word_t align)
     return addr_mask (addr, ~(align - 1));
 }
 
-
-/* Table containing mappings from spaceid_t to space_t* */
-spaceid_lookup_t space_lookup;
 
 void SECTION(SEC_INIT) init_spaceids(word_t max_spaceids,
                                      kmem_resource_t *kresource)

@@ -56,7 +56,6 @@ private:
     {
         heap.init(start, end);
     }
-
     void init_kmem_groups(void)
     {
         word_t i;
@@ -65,7 +64,6 @@ private:
             kmem_groups[i] = 0;
         }
     }
-
     void arch_init_small_alloc_pools(void);
     void init_small_alloc_pools(void);
 
@@ -91,7 +89,6 @@ public:
     void * alloc_aligned(kmem_group_e group, word_t size,
                          word_t alignment, word_t mask, bool zeroed);
     void free(kmem_group_e group, void * address, word_t size = 0);
-    void add(void * address, word_t size) {heap.add(address, size);}
 
     friend class small_alloc_t;
     friend class kdb_t;

@@ -2,19 +2,10 @@
 #define __ARCH__ARM__FASS_H__
 
 #define ARM_DOMAINS     16
-
 #define KERNEL_DOMAIN   0
 #define INVALID_DOMAIN ARM_DOMAINS
-
-#define PID_AREA_SIZE   MB(32)
-
-#if !defined(ASSEMBLY)
-
 typedef unsigned int arm_domain_t;
 typedef unsigned char arm_pid_t;
-
-class space_t;
-
 
 INLINE word_t * get_current_domain()
 {
@@ -35,7 +26,5 @@ class arm_fass_t {
 public:
     void activate_other_domain( space_t *space );
 };
-
-#endif
 
 #endif /* __ARCH__ARM__FASS_H__ */

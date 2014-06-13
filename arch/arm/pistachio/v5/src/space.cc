@@ -162,11 +162,7 @@ void generic_space_t::flush_tlbent_local(space_t *curspace, addr_t vaddr, word_t
 
 bool generic_space_t::allocate_page_directory(kmem_resource_t *kresource)
 {
-#if (ARM_L0_SIZE < KMEM_CHUNKSIZE)
     pdir = (pgent_t *)kresource->alloc(kmem_group_l0_allocator, true);
-#else
-    pdir = (pgent_t *)kresource->alloc(kmem_group_pgtab, ARM_L0_SIZE, true);
-#endif
     if (!pdir)
         return false;
 
@@ -175,11 +171,7 @@ bool generic_space_t::allocate_page_directory(kmem_resource_t *kresource)
 
 void generic_space_t::free_page_directory(kmem_resource_t *kresource)
 {
-#if (ARM_L0_SIZE < KMEM_CHUNKSIZE)
     kresource->free(kmem_group_l0_allocator, pdir);
-#else
-    kresource->free(kmem_group_pgtab, pdir, ARM_L0_SIZE);
-#endif
 }
 
 

@@ -10,41 +10,7 @@ small_alloc_t::allocate_block(kmem_group_t * const group)
 {
     word_t length = objs_per_block;
     void * block_base = get_current_kmem_resource()->heap.alloc(group, SMALL_OBJECT_BLOCKSIZE, false);
-    if (!block_base)
-        return NULL;
     small_alloc_block_t *block = get_block(block_base);
-    if (!head || head->id != 0)
-    {
-        block->next = head;
-        head = block;
-        if (max_objs && (length >= max_objs)) {
-            length = max_objs;
-        }
-        bitmap_init(block->get_bitmap(), length, true);
-        return block;
-    }
-    small_alloc_block_t * current = head;
-    word_t next_id = current->id + objs_per_block;
-    while (current->next)
-    {
-        current = current->next;
-        if (current->id != next_id) {
-            block->next = current->next;
-            current->next = block;
-
-            block->id = next_id;
-            bitmap_init(block->get_bitmap(), length, true);
-            return block;
-        }
-        next_id += objs_per_block;
-    }
-    block->id = next_id;
-    current->next = block;
-    block->next = 0;
-
-    if (max_objs && (length + next_id >= max_objs)) {
-        length = max_objs - next_id;
-    }
     bitmap_init(block->get_bitmap(), length, true);
     return block;
 }

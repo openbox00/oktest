@@ -25,9 +25,6 @@ public:
 INLINE void
 scheduler_t::enqueue(tcb_t * tcb)
 {
-    if (tcb->is_reserved()) {
-        return;
-    }
     prio_queue.enqueue(tcb);
 }
 

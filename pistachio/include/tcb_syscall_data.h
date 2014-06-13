@@ -5,23 +5,8 @@
 #include <kernel/generic/lib.h>
 #include <arch/ktcb.h>
 
-#if defined(CONFIG_DEBUG)
-/* Enable sanity checking for compressed TCB continuation data. */
-#define TCB_DATA_SANITY
-#endif
-
-/* Pagefault saves three registers, exceptions save 1 */
-#define MAX_SAVED_MESSAGE_REGISTERS 3
-
 class tcb_t;
 
-/**
- * @brief encapsulate the data of the TCB related to carrying out syscalls.
- *
- * While a thread is running it can be doing, from a kernel perspective, one
- * of several mutually exclusive actions (related to syscalls).  Wrap this
- * action and it's associated data in a union to minimise space.
- */
 class tcb_syscall_data_t
 {
 public:
@@ -81,7 +66,6 @@ public:
         capid_t         from_tid;
         /* IPC copy */
 
-        word_t          saved_mr[MAX_SAVED_MESSAGE_REGISTERS];
         word_t          saved_notify_mask;
         word_t          saved_error;
 

@@ -99,7 +99,7 @@ void
 scheduler_t::schedule(tcb_t * current, continuation_t continuation)
 {
     prio_t max_prio = get_highest_priority();
-    bool current_runnable = current->get_state().is_runnable() && !current->is_reserved();
+    bool current_runnable;
     if (current_runnable) {
         if (current->effective_prio > max_prio ||(current->effective_prio == max_prio)) {
             ACTIVATE_CONTINUATION(continuation);

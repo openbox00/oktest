@@ -187,20 +187,12 @@ INLINE bool generic_space_t::is_utcb_area(addr_t addr)
 
 INLINE bool generic_space_t::is_mappable(addr_t addr)
 {
-    return (is_user_area(addr)
-#if (CONFIG_UTCB_SIZE != 0)     /* UTCB is user allocated */
-            && (!get_utcb_area().is_addr_in_fpage(addr))
-#endif
-           );
+    return (is_user_area(addr));
 }
 
 INLINE bool generic_space_t::is_mappable(addr_t start, addr_t end)
 {
-    return (this->is_user_area(start) && this->is_user_area((addr_t)((word_t)end-1))
-#if (CONFIG_UTCB_SIZE != 0)     /* UTCB is user allocated */
-            && (!this->get_utcb_area ().is_range_overlapping (start, end))
-#endif
-           );
+    return (this->is_user_area(start) && this->is_user_area((addr_t)((word_t)end-1)));
 }
 
 INLINE bool generic_space_t::is_mappable(fpage_t fpage)
