@@ -238,7 +238,6 @@ static space_t SECTION(SEC_INIT)*
 ki_create_space(kmem_resource_t * res, clist_t* clist, ki_create_space_t* args)
 {
     space_t * space = allocate_space(res, spaceid(args->id), clist);   
-    space->set_maximum_priority(args->max_priority);
 
     fpage_t utcb_area;
     utcb_area.set((args->utcb_area_base << SHIFT_1K),

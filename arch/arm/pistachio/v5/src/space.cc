@@ -22,20 +22,7 @@ ALIGNED(ARM_HWL1_SIZE) char UNIT("kspace") _kernel_space_pagetable[ARM_HWL1_SIZE
 void SECTION(".init") init_kernel_space()
 {
     space_t * kspace = get_kernel_space();
-    kspace->init_kernel_mappings();
     kspace->enqueue_spaces();
-}
-
-/*
- * Window part of Armv5 specific space_control call
- */
-word_t space_t::space_control_window(word_t ctrl)
-{
-    return 1;
-}
-
-void SECTION(".init") generic_space_t::init_kernel_mappings()
-{
 }
 
 bool generic_space_t::init (fpage_t utcb_page,
@@ -140,19 +127,6 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
     }
     tcb->set_utcb_location((word_t)utcb);
     return utcb;
-}
-
-/**
- * Free a UTCB
- * @param utcb   The utcb
- */
-void generic_space_t::free_utcb(utcb_t * utcb)
-{
-}
-
-
-void generic_space_t::flush_tlb(space_t *curspace)
-{
 }
 
 void generic_space_t::flush_tlbent_local(space_t *curspace, addr_t vaddr, word_t log2size)

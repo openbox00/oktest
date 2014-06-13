@@ -62,11 +62,7 @@ public:
 
     /* utcb_management */
     utcb_t *  allocate_utcb(tcb_t * tcb, kmem_resource_t *kresource);
-    void free_utcb(utcb_t * utcb);
-    void free_utcb_area_memory();
-
     /* kernel space management */
-    void init_kernel_mappings();
     void init_cpu_mappings(scheduler_domain_t cpu);
     void free_utcb_page(pgent_t * pg, pgent_t::pgsize_e pgsize, addr_t vaddr);
     bool sync_kernel_space(addr_t addr);
@@ -106,9 +102,6 @@ public:
     fpage_t get_utcb_area (void) { return utcb_area; }
     word_t get_thread_count (void) { return thread_count; }
     prio_t get_maximum_priority(void) { return maximum_priority; }
-    void set_utcb_area (fpage_t f) { utcb_area = f; }
-    void set_thread_count (word_t c) { thread_count = c; }
-    void set_maximum_priority(prio_t prio) { maximum_priority = prio; }
 
     void set_kmem_resource(kmem_resource_t * res) { kmem_resource = res; }
     kmem_resource_t * get_kmem_resource(void) { return kmem_resource; }
@@ -118,14 +111,8 @@ public:
     static word_t readmem_phys (addr_t vaddr, addr_t paddr);
 
     /* tlb flushing */
-    void flush_tlb (space_t * curspace);
     void flush_tlbent_local (space_t * curspace, addr_t vaddr, word_t log2size);
     bool does_tlbflush_pay (word_t log2size);
-
-    /* update hooks */
-    static void begin_update() { }
-    static void end_update() { }
-
     /* generic page table walker */
     pgent_t * pgent (word_t num, word_t cpu = 0);
 
@@ -167,7 +154,6 @@ void SECTION(SEC_INIT) setup_initial_mappings (space_t * space);
 
 extern space_t * space_table;
 extern space_t * global_spaces_list;
-//extern spinlock_t spaces_list_lock;
 
 INLINE void generic_space_t::enqueue_spaces()
 {

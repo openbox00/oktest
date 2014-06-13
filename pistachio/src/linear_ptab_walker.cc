@@ -22,7 +22,6 @@ bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
     pgent_t::pgsize_e pgsize, t_size;
     addr_t t_addr, p_addr;
     pgent_t * tpg;
-    bool flush = false;
 
     pgent_t * r_tpg[pgent_t::size_max];
     word_t r_tnum[pgent_t::size_max];
@@ -39,7 +38,6 @@ bool generic_space_t::map_fpage(phys_desc_t base, fpage_t dest_fp,
 
     tpg = this->pgent(0)->next(this, t_size, page_table_index(t_size, t_addr));
 
-    begin_update ();
     while (t_num > 0)
     {
         if (EXPECT_FALSE(t_size > pgsize))
@@ -120,14 +118,9 @@ map_next_pgentry:
             } while (t_size < pgsize && t_num == 0);
         }
     }
-
-    if (flush)
-        this->flush_tlb (get_current_space ());
-    end_update ();
     return true;
 
 map_fpage_fail:
-    end_update ();
     return false;
 }
 #endif /* !__GENERIC__LINEAR_PTAB_WALKER_CC__ */
