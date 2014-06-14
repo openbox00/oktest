@@ -8,7 +8,6 @@
 #include <atomic_ops/atomic_ops.h>
 #include <threadstate.h>
 #include <space.h>
-#include <resources.h>
 #include <capid.h>
 #include <utcb.h>
 #include <smallalloc.h>
@@ -80,12 +79,7 @@ public:
     /* cache of space's page directory */
     pgent_t *           page_directory;
 
-private:
-    ref_t               pager;
-private:
-
 public:
-    resource_bits_t     resource_bits;
     continuation_t      cont;
     arch_ktcb_t         arch;
     callback_func_t     post_syscall_callback;
@@ -96,7 +90,6 @@ public:
     prio_t              effective_prio;
 public:
     thread_state_t      saved_state;
-    thread_resources_t  resources;
     ringlist_t<tcb_t>   thread_list;
 private:
     /* do not delete this STRUCT_END_MARKER */
@@ -150,7 +143,6 @@ INLINE void init_idle_tcb()
 
 tcb_t * get_idle_tcb(cpu_context_t context) PURE;
 
-
 INLINE tcb_t * get_idle_tcb(cpu_context_t context)
 {
     extern tcb_t* __idle_tcb[];
@@ -168,11 +160,6 @@ INLINE tcb_t * get_idle_tcb()
     return get_idle_tcb(0);
 }
 
-INLINE utcb_t * get_idle_utcb()
-{
-    return get_idle_utcb(0);
-}
-
 #include <arch/tcb.h>
 
 INLINE space_t * get_current_space(void) PURE;
@@ -186,20 +173,6 @@ INLINE void
 tcb_t::notify(continuation_t func)
 {
     cont = (continuation_t)func;
-}
-
-extern "C" void arm_return_from_notify0(void);
-
-INLINE void generic_space_t::add_tcb(tcb_t * tcb)
-{
-    thread_count++;
-    ENQUEUE_LIST_TAIL(tcb_t, thread_list, tcb, thread_list);
-}
-
-INLINE void generic_space_t::remove_tcb(tcb_t * tcb)
-{
-    thread_count--;
-    DEQUEUE_LIST(tcb_t, thread_list, tcb, thread_list);
 }
 
 #endif /* !__TCB_H__ */

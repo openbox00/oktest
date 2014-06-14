@@ -65,10 +65,8 @@ extern "C" void arm_memory_abort(word_t fault_status, addr_t fault_addr,
                         if (share_sec.is_valid(share_space, pgent_t::size_1m))
                         {
                             arm_domain_t share_domain = share_space->get_domain();
-                            bool manager = space->is_manager_of_domain(share_space);
                             if (fault_domain != share_domain)
                             {
-                                space->add_domain_access(share_domain, manager);
                                 current_domain = share_domain;
                                 fass_update_pds(share_space, cpd_entry, share_sec, fault_section);
                                 current_domain = space->get_domain();

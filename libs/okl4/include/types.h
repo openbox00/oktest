@@ -8,10 +8,6 @@
 #include <l4/types.h>
 #include <l4/utcb.h>
 
-/**
- * Needed to convert between a _okl4_range_container subtype and it's 'base'
- * type which can be either a memsection or a zone.
- */
 typedef enum _okl4_mem_container_type {
     _OKL4_TYPE_MEMSECTION,
     _OKL4_TYPE_ZONE,
@@ -19,7 +15,6 @@ typedef enum _okl4_mem_container_type {
 } _okl4_mem_container_type_t;
 
 typedef word_t okl4_word_t;
-typedef utcb_t okl4_utcb_t;
 
 typedef int8_t    okl4_s8_t;
 typedef int16_t   okl4_s16_t;

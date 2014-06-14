@@ -1,6 +1,5 @@
 #ifndef __GLUE__V4_ARM__SPACE_H
 #define __GLUE__V4_ARM__SPACE_H
-#include <clist.h>
 #define UTCB_BITMAP_LENGTH ((92 - 24)*8)
 
 /* Include ARM version specfic space definition and implementations */

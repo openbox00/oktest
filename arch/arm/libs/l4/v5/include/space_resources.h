@@ -1,9 +1,0 @@
-#ifndef __L4__ARM__V5__SPACE_RESOURCES_H__
-#define __L4__ARM__V5__SPACE_RESOURCES_H__
-
-/* Armv5 SpaceControl SpaceResourced layout */
-#define L4_SPACE_RESOURCES_WINDOW_GRANT     0x00004000
-#define L4_SPACE_RESOURCES_WINDOW_MANAGE    0x00008000
-#define L4_SPACE_RESOURCES_WINDOW_REVOKE    0x0000c000
-
-#endif /*__L4__ARM__V5__PAGE_H__*/

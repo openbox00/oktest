@@ -1,8 +1,6 @@
 #ifndef __UTCB_H__
 #define __UTCB_H__
 
-#include <ipc.h>
- 
 #include <l4/arch/vregs.h> /* UTCB Layout. */
 
 typedef okl4_atomic_word_t notify_bits_t;

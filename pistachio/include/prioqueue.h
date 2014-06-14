@@ -7,9 +7,6 @@ class prio_queue_t
 {
 public:
     void enqueue(tcb_t * tcb);
-    void dequeue(tcb_t * tcb);
-    void set_base_priority(tcb_t * tcb, prio_t prio);
-    void set_effective_priority(tcb_t * tcb, prio_t prio);
     tcb_t * get(prio_t prio);
     tcb_t * prio_queue[MAX_PRIO + 1];
 

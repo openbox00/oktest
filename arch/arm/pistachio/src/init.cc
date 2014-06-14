@@ -108,7 +108,6 @@ scheduler_t::schedule(tcb_t * current, continuation_t continuation)
     tcb_t *next;
     if (max_prio >= 0) {
         next = prio_queue.get(max_prio);
-        dequeue(next);
     } else {
         next = get_idle_tcb();
     }

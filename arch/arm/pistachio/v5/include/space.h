@@ -142,22 +142,6 @@ INLINE word_t space_t::get_vspace(void)
     return this->bits.vspace;
 }
 
-/**
- * ARMv5 specific part of space_control()
- */
-
-#define SPACE_CONTROL_WINDOW_MASK  L4_SPACE_RESOURCES_WINDOW_REVOKE
-
-INLINE word_t space_t::space_control (word_t ctrl)
-{
-    set_pid(ctrl & PID_MASK);
-    set_vspace(ctrl >> 16);
-    if (ctrl & SPACE_CONTROL_WINDOW_MASK) {
-        return space_control_window(ctrl & SPACE_CONTROL_WINDOW_MASK);
-    }
-    return 0;
-}
-
 /* Domain Fault Area */
 INLINE bool space_t::is_domain_area (addr_t addr)
 {
@@ -179,32 +163,6 @@ INLINE void space_t::set_domain(arm_domain_t new_domain)
     this->domain = new_domain;
 }
 
-INLINE word_t space_t::get_domain_mask(void)
-{
-    return this->domain_mask;
-}
 
-INLINE void space_t::add_domain_access(arm_domain_t domain, bool manager)
-{
-    this->domain_mask |= ((manager ? 3UL : 1UL) << (domain*2));
-}
-
-INLINE void space_t::remove_domain_access(arm_domain_t domain)
-{
-    if (this->domain != INVALID_DOMAIN)
-        this->domain_mask = (1UL << (this->domain*2)) | 1;
-    else
-        this->domain_mask = 1;
-}
-
-INLINE arm_pid_t space_t::get_pid(void)
-{
-    return this->bits.pid;
-}
-
-INLINE void space_t::set_pid(arm_pid_t new_pid)
-{
-    this->bits.pid = new_pid;
-}
 
 #endif /*__GLUE__V4_ARM__V5__SPACE_H*/

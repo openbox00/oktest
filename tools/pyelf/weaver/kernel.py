@@ -640,7 +640,7 @@ class Kernel(XmlCollector):
 
 def check_api_versions(kernel):
     """ Return the kernel API version number.  """
-    kern_ver = get_symbol(kernel, "kernel_api_version", True)
+    kern_ver = get_symbol(kernel, "kernel_api_version", False)
     if kern_ver:
         addr = kern_ver[0]
         size = kern_ver[1]

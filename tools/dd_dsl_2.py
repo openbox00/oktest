@@ -60,7 +60,6 @@ license = """
 
 """
 headers = """
-#include <assert.h>
 #include <driver/driver.h>
 #include <stdio.h>
 #include <inttypes.h>

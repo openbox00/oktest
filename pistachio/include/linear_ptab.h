@@ -34,14 +34,6 @@ INLINE pgent_t::pgsize_e operator- (pgent_t::pgsize_e l, int r)
     return (pgent_t::pgsize_e) ((word_t) l - r);
 }
 
-
-/**
- * Get page size in bytes for given page size number.
- *
- * @param pgsize        page size number
- *
- * @return number of bytes for given page size
- */
 word_t page_size (pgent_t::pgsize_e pgsize) PURE;
 
 INLINE word_t page_size (pgent_t::pgsize_e pgsize)
@@ -49,14 +41,6 @@ INLINE word_t page_size (pgent_t::pgsize_e pgsize)
     return 1UL << hw_pgshifts[pgsize];
 }
 
-
-/**
- * Get page size in shift length for given page size.
- *
- * @param pgsize        page size number
- *
- * @return page shift for given page size
- */
 word_t page_shift (pgent_t::pgsize_e pgsize) PURE;
 
 INLINE word_t page_shift (pgent_t::pgsize_e pgsize)
@@ -93,8 +77,6 @@ template<typename T>
 INLINE bool readmem (space_t * space, addr_t vaddr, T * v)
 {
     word_t w;
-
-    /* Is it a request for physical mem? */
     if (space == (void*)~0UL)
     {
         addr_t paddr = vaddr;
@@ -102,7 +84,6 @@ INLINE bool readmem (space_t * space, addr_t vaddr, T * v)
 
         if (paddr1 == paddr)
         {
-            // Word access is properly aligned.
             w = get_kernel_space()->readmem_phys (vaddr, paddr);
         }
         else
@@ -126,12 +107,9 @@ INLINE bool readmem (space_t * space, addr_t vaddr, T * v)
     {
         if (! space->is_user_area (vaddr))
         {
-            // We are not reading user memory.  Just access it directly
             *v = *(T *) vaddr;
             return true;
         }
-
-        // Check if memory is accessible
         if (! space->readmem (vaddr, &w))
             return false;
     }

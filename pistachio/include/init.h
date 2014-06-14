@@ -52,11 +52,6 @@ enum {
     INIT_PHASE_MAX
 };
 
-/*
- * This function runs operations in 'init script' corresponding to the
- * current phase.  If it is called again, it runs operations for the
- * next phase.
- */
 void run_init_script(word_t phase);
 
 #endif /* !__INIT_H__ */

@@ -34,7 +34,6 @@ space_t * allocate_space(kmem_resource_t *res, spaceid_t space_id, clist_t *clis
 
     space->set_kmem_resource(NULL);
     space->enqueue_spaces();
-    space->init_security(clist);
 
     return space;
 }

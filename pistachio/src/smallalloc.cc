@@ -16,14 +16,8 @@ small_alloc_t::allocate_block(kmem_group_t * const group)
 }
 void * small_alloc_t::allocate(bool zeroed)
 {
-    if (max_objs && (num >= max_objs)) {
-        return NULL;
-    }
     if (EXPECT_FALSE(!first_free)) {
         first_free = allocate_block(mem_group);
-        if (!first_free){
-            return NULL;
-        }
     }
     int position = bitmap_findfirstset(first_free->get_bitmap(), objs_per_block);
     void * object = get_object(first_free, position);
@@ -31,8 +25,6 @@ void * small_alloc_t::allocate(bool zeroed)
     while (bitmap_findfirstset(first_free->get_bitmap(), objs_per_block) == -1)
     {
         first_free = first_free->next;
-        if (!first_free)
-            break;
     }
     num++;
     return object;

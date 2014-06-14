@@ -1,7 +1,3 @@
-/*
- * Description:
- */
-
 #ifndef __GLUE__V4_ARM__KTCB_H__
 #define __GLUE__V4_ARM__KTCB_H__
 
@@ -36,19 +32,6 @@ public:
     /* do not delete this STRUCT_END_MARKER */
 };
 
-
-#define ARCH_ENABLE_USER_ACCESS                 \
-    __asm__ __volatile__ (                      \
-        "   mcr     p15, 0, %0, c3, c0     \n"  \
-        :: "r" (current_domain_mask)            \
-    )
-
-
-#define ARCH_DISABLE_USER_ACCESS                \
-    __asm__ __volatile__ (                      \
-        "   mcr     p15, 0, %0, c3, c0     \n"  \
-        :: "r" (0x55555555)                     \
-    )
 
 
 #endif /* __GLUE__V4_ARM__KTCB_H__ */

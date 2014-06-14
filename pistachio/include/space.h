@@ -10,7 +10,6 @@
 #include <queueing.h>
 #include <map.h>
 #include <spaceid.h>
-#include <clist.h>
 #include <arch/pgent.h>
 #include <phys_segment.h>
 
@@ -21,15 +20,6 @@ class kmem_resource_t;
 
 class space_perm_t
 {
-public:
-    union {
-        struct {
-            BITFIELD2( word_t,
-                       plat_control : 1,
-                       __res        : BITS_WORD - 1);
-        } access;
-        u16_t raw;
-    };
 };
 
 class generic_space_t
@@ -58,8 +48,6 @@ public:
     void add_tcb(tcb_t * tcb);
     void remove_tcb(tcb_t * tcb);
 
-    /* cap management */
-
     /* utcb_management */
     utcb_t *  allocate_utcb(tcb_t * tcb, kmem_resource_t *kresource);
     /* kernel space management */
@@ -75,18 +63,6 @@ public:
     bool is_mappable(addr_t addr);
     bool is_mappable(addr_t start, addr_t end);
     bool is_mappable(fpage_t fpage);
-
-    /* security */
-    void init_security(clist_t* new_clist)
-        {
-            clist = new_clist;
-            permissions.raw = 0;
-        }
-
-    void allow_plat_control(void) { permissions.access.plat_control = 1; }
-    void restrict_plat_control(void) { permissions.access.plat_control = 0; }
-    bool may_plat_control(void) { return permissions.access.plat_control == 1; }
-    space_t * lookup_space(spaceid_t space_id);
 
     /* temporary */
     bool can_access_kresources(void) { return kmem_resource != NULL; }
@@ -110,9 +86,8 @@ public:
     bool readmem (addr_t vaddr, word_t * contents);
     static word_t readmem_phys (addr_t vaddr, addr_t paddr);
 
-    /* tlb flushing */
-    void flush_tlbent_local (space_t * curspace, addr_t vaddr, word_t log2size);
-    bool does_tlbflush_pay (word_t log2size);
+	void flush_tlbent_local (space_t * curspace, addr_t vaddr, word_t log2size);
+	bool does_tlbflush_pay (word_t log2size);
     /* generic page table walker */
     pgent_t * pgent (word_t num, word_t cpu = 0);
 

@@ -4,7 +4,6 @@
 #ifndef __MAP_H__
 #define __MAP_H__
 #include <l4/map_types.h>
-
 #include <arch/pgent.h>
 
 class phys_desc_t

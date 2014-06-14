@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include <okl4/env.h>

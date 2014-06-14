@@ -1,7 +1,3 @@
-/**
- *  * @file
- *   * @brief The ARM-specific bits of working with continuation functions.
- *    */
 #ifndef __ARM__CONTINUATION_H__
 #define __ARM__CONTINUATION_H__
 

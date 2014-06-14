@@ -1,11 +1,9 @@
-#include <l4/arch/vregs_asm.h>
-
         .arm
         .global _start
 _start:
-        ldr     r0, =USER_UTCB_REF
+        ldr     r0, =0xff000ff0
         ldr     r0, [r0]
-        ldr     r0, [r0, #(__L4_TCR_MR_OFFSET + 1)*4]
+        ldr     r0, [r0, #(16 + 1)*4]
         b       __sys_entry
 
         .global _thread_start
