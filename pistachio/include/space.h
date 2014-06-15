@@ -28,8 +28,6 @@ public:
 
     /* initialize and free */
     bool init(fpage_t utcb_area, kmem_resource_t *kresource);
-    void free(kmem_resource_t *kresource);
-    void arch_free (kmem_resource_t *kresource);
 
     bool check_utcb_location (word_t utcb_address);
 
@@ -54,7 +52,6 @@ public:
     void init_cpu_mappings(scheduler_domain_t cpu);
     void free_utcb_page(pgent_t * pg, pgent_t::pgsize_e pgsize, addr_t vaddr);
     bool sync_kernel_space(addr_t addr);
-
 
     /* address ranges */
     bool is_user_area(addr_t addr);

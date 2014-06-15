@@ -1,8 +1,6 @@
 #ifndef __L4__ARM__VREGS_H__
 #define __L4__ARM__VREGS_H__
 
-#include <l4/cust/utcb.h>
-
 #define __L4_NUM_MRS                32
 
 #define UTCB_STRUCT struct {                                            \
@@ -39,6 +37,5 @@
 #define __L4_TCR_USER_NUM                       (10)
 
 
-#include <l4/cust/vregs.h>
 
 #endif /* __L4__ARM__VREGS_H__ */

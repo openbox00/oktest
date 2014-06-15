@@ -51,12 +51,6 @@ bool generic_space_t::init (fpage_t utcb_page,
     return true;
 }
 
-/**
- * Clean up a Space
- */
-void generic_space_t::arch_free(kmem_resource_t *kresource)
-{
-}
 
 
 /**
@@ -131,7 +125,6 @@ utcb_t * generic_space_t::allocate_utcb(tcb_t * tcb,
 
 void generic_space_t::flush_tlbent_local(space_t *curspace, addr_t vaddr, word_t log2size)
 {
-    vaddr = addr_align(vaddr, 1 << log2size);
 }
 
 bool generic_space_t::allocate_page_directory(kmem_resource_t *kresource)
@@ -143,44 +136,6 @@ bool generic_space_t::allocate_page_directory(kmem_resource_t *kresource)
     return true;
 }
 
-void generic_space_t::free_page_directory(kmem_resource_t *kresource)
-{
-    kresource->free(kmem_group_l0_allocator, pdir);
-}
 
 
-/**
- * Is this space sharing the domain of target?
- */
-bool space_t::is_sharing_domain(space_t *target)
-{
-    word_t targetid = target->get_space_id().get_spaceno();
-
-    return bitmap_isset(this->get_shared_spaces_bitmap(), targetid);
-}
-
-/**
- * Is this space a manager of the domain of target?
- */
-bool space_t::is_manager_of_domain(space_t *target)
-{
-    word_t targetid = target->get_space_id().get_spaceno();
-
-    return bitmap_isset(this->get_manager_spaces_bitmap(), targetid);
-}
-
-bool space_t::is_client_space(space_t *space)
-{
-    word_t spc_no = space->get_space_id().get_spaceno();
-
-    if (bitmap_isset(this->get_client_spaces_bitmap(), spc_no)) {
-        return true;
-    }
-    return false;
-}
-
-void space_t::set_vspace(word_t vspace)
-{
-        this->bits.vspace = 0;
-}
 

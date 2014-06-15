@@ -1,8 +1,6 @@
 #ifndef __L4__UTCB_H__
 #define __L4__UTCB_H__
 
-typedef L4_SpaceId_t spaceid_t;
-typedef L4_ThreadId_t capid_t;
 typedef word_t acceptor_t;
 typedef word_t notify_bits_t;
 typedef L4_Word8_t u8_t;

@@ -19,11 +19,7 @@ enum memattrib_e {
     iomemory            = uncached, /* Alias on this architecture. */
     writecombine        = CACHE_ATTRIB_WRITECOMBINE,
     writethrough        = CACHE_ATTRIB_WRITETHROUGH,
-#if defined(CONFIG_DEFAULT_CACHE_ATTR_WB)
-    l4default           = cached,
-#else
-    l4default           = writethrough, /* NB: this will affect performance */
-#endif
+    l4default           = cached
 };
 
 class arm_l2_desc_t

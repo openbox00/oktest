@@ -369,11 +369,6 @@ public:
             return this + num;
         }
 
-    // Operators
-    bool operator != (const pgent_t rhs)
-        {
-            return this->raw != rhs.raw;
-        }
 };
 
 #endif /* !__ARCH__ARM__V5__PGENT_H__ */

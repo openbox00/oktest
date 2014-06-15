@@ -11,15 +11,6 @@
 #define CACHE_ATTRIB_WRITETHROUGH   2
 #define CACHE_ATTRIB_WRITEBACK      3
 
-#define L4_DefaultMemory            CACHE_ATTRIB_WRITEBACK
-#define L4_CachedMemory             CACHE_ATTRIB_WRITEBACK
-#define L4_UncachedMemory           CACHE_ATTRIB_UNCACHED
-#define L4_WriteBackMemory          CACHE_ATTRIB_WRITEBACK
-#define L4_WriteThroughMemory       CACHE_ATTRIB_WRITETHROUGH
-#define L4_CohearentMemory          CACHE_ATTRIB_UNCACHED
-#define L4_IOMemory                 CACHE_ATTRIB_UNCACHED
-#define L4_IOCombinedMemory         CACHE_ATTRIB_UNCACHED
-#define L4_StrongOrderedMemory      CACHE_ATTRIB_UNCACHED
 
 #endif
 

@@ -5,9 +5,6 @@
 #ifndef __GLUE__V4_ARM__V5__SPACE_H
 #define __GLUE__V4_ARM__V5__SPACE_H
 
-#include <l4/arch/ver/space_resources.h>
-
-
 class space_t : public generic_space_t
 {
 public:
@@ -38,10 +35,6 @@ public:
     bool domain_unlink(generic_space_t *source);
     bool window_share_fpage(space_t *space, fpage_t fpage,
                             kmem_resource_t *kresource);
-
-    /* Manage access to this space's domain */
-    void flush_sharing_spaces(void);
-    void flush_sharing_on_delete(void);
 
     /* PID management */
     arm_pid_t get_pid(void);

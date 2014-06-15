@@ -23,11 +23,6 @@ typedef uint8_t   okl4_u8_t;
 typedef uint16_t  okl4_u16_t;
 typedef uint32_t  okl4_u32_t;
 
-typedef L4_CapId_t okl4_kcap_t;
-typedef L4_ClistId_t okl4_kclistid_t;
-typedef L4_MutexId_t okl4_kmutexid_t;
-typedef L4_SpaceId_t okl4_kspaceid_t;
-
 
 
 /* LibOKL4 Typedefs. */

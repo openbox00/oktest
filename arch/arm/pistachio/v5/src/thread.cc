@@ -1,9 +1,3 @@
-/*
- * Description:   ARMv5 specific thread handling functions
- */
-#include <tcb.h>
-#include <schedule.h>
-#include <arch/thread.h>
 #include <schedule.h>
 
 #define asm_switch_to(cont, dest, utcb_location)                            \

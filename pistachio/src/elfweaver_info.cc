@@ -11,18 +11,6 @@
 
 SECTION(".elfweaver_info") extern const struct elfweaver_info weaver_info = {
     {
-        L4_DefaultMemory,
-        L4_CachedMemory,
-        L4_UncachedMemory,
-        L4_WriteBackMemory,
-        L4_WriteThroughMemory,
-        L4_CohearentMemory,
-        L4_IOMemory,
-        L4_IOCombinedMemory,
-        L4_StrongOrderedMemory,
-        L4_DefaultMemory,
-        L4_DefaultMemory,
-        L4_DefaultMemory
     },
     sizeof(utcb_t),
     ARCH_MAX_SPACES,
