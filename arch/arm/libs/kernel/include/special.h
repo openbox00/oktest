@@ -4,7 +4,7 @@
 #ifndef __ARCH__ARM__SPECIAL_H__
 #define __ARCH__ARM__SPECIAL_H__
 
-#include <kernel/arch/asm.h>
+#include <kernel/arch/asm_gnu.h>
 /*
  * Find Most Significant bit.
  * NB - check for w == 0 must be done before calling msb()

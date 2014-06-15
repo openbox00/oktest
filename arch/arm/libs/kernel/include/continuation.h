@@ -5,7 +5,6 @@
 /* Define Stack and Continuation handling functions */
 
 #if !defined(ASSEMBLY)
-#include <kernel/arch/asm.h>
 #define ACTIVATE_CONTINUATION(continuation)     \
     do {                \
         __asm__ __volatile__ (                                          \

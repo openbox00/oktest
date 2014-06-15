@@ -1,5 +1,6 @@
 #include <schedule.h>
 
+
 ALIGNED(8) scheduler_t          __scheduler UNIT("cpulocal");
 ALIGNED(8) space_t              __kernel_space_object;
 

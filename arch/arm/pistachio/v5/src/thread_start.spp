@@ -8,7 +8,7 @@
 #include <asmsyms.h>
 #include <arch/globals.h>
 #include <arch/thread.h>
-#include <kernel/arch/asm.h>
+#include <kernel/arch/asm_gnu.h>
 
         /* Initial jump to a user thread */
         BEGIN_PROC(initial_to_user)

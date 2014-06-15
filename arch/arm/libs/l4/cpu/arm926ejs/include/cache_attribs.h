@@ -1,6 +1,0 @@
-#ifndef __L4__ARM__XSCALE__CACHE_ATTRIBS_H__
-#define __L4__ARM__XSCALE__CACHE_ATTRIBS_H__
-
-#define __USE_DEFAULT_V5_CACHE_ATTRIBUTES
-
-#endif /* !__L4_ARM__XSCALE__CACHE_ATTRIBS_H__ */

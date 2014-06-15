@@ -1,7 +1,6 @@
 /*
  * Description:  Kernel initialization data
  */
-#include <l4.h>
 #include <tcb.h>
 #include <init.h>
 

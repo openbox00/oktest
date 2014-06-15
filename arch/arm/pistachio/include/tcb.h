@@ -1,7 +1,5 @@
 #ifndef __ARM__TCB_H__
 #define __ARM__TCB_H__
-
-#include <kernel/arch/asm.h>
 #include <kernel/arch/continuation.h>
 
 extern stack_t __stack;

@@ -9,7 +9,7 @@
 #include <asmsyms.h>
 #include <arch/globals.h>
 #include <arch/thread.h>
-#include <kernel/arch/asm.h>
+#include <kernel/arch/asm_gnu.h>
 
         TRAPS_BEGIN_MARKER  /* Do not remove */
 

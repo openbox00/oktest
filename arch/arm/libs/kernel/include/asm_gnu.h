@@ -4,42 +4,13 @@
 #ifndef __ARCH__ARM__ASM_GNU_H__
 #define __ARCH__ARM__ASM_GNU_H__
 
-//#include <cpu/syscon.h>
 
 /* XXX: inline asm hacks */
 #define _(x)                    "%["#x"]"
 
-/* calls / branches */
-#if defined(CONFIG_ARM_V5) || defined(CONFIG_ARM_V6) || (CONFIG_ARM_VER >= 6)
 
-#if defined(ASSEMBLY)
-    .macro jump reg
-    bx      \reg
-    .endm
-    .macro call reg
-    blx     \reg
-    .endm
-#else
-#define jump                    bx
-#define call                    blx
-#endif
-
-#else
-
-#if defined(ASSEMBLY)
-    .macro jump reg
-    mov     pc, \reg
-    .endm
-    .macro call reg
-    mov     lr, pc
-    mov     pc, \reg
-    .endm
-#else
 #define jump                    mov     pc,
-#define call                    mov     lr, pc; mov     pc,
-#endif
 
-#endif
 
 #if defined(ASSEMBLY)
 /* ARM style directives */
@@ -101,13 +72,6 @@ name:
         "   .err                \n"             \
         "   .endif              \n"             \
 
-#if CONFIG_ARM_VER >= 6
-/* ARMv6 Convenience Macros */
-#define r13_svc     #0x13
-#define svc_mode    #0x13
 
-#define r13_abt     #0x17
-#define abt_mode    #0x17
-#endif
 
 #endif /* __ARCH__ARM__ASM_GNU_H__ */
